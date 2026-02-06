@@ -1,0 +1,23 @@
+{
+  "feeds": [
+    {
+      "name": "Example Blog",
+      "url": "https://example.com/feed.xml",
+      "webhookUrl": "https://discord.com/api/webhooks/YOUR_ID/YOUR_TOKEN",
+      "color": 3447003,
+      "intervalMinutes": 5
+    },
+    {
+      "name": "GitHub Releases",
+      "url": "https://github.com/oven-sh/bun/releases.atom",
+      "webhookUrl": "https://discord.com/api/webhooks/YOUR_ID/YOUR_TOKEN",
+      "color": 15105570,
+      "intervalMinutes": 10
+    }
+  ],
+  "defaults": {
+    "intervalMinutes": 5,
+    "color": 3447003,
+    "maxHistoryPerFeed": 200
+  }
+}
