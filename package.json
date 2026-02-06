@@ -4,12 +4,17 @@
   "type": "module",
   "scripts": {
     "start": "bun run src/main.ts",
-    "dev": "bun --watch run src/main.ts"
+    "dev": "bun --watch run src/main.ts",
+    "test": "bun run src/main.ts --test",
+    "check": "tsc --noEmit && biome check",
+    "format": "biome format --write ."
   },
   "dependencies": {
-    "feedsmith": "^2.9.0"
+    "feedsmith": "^2.9.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.3.14",
     "@types/bun": "latest",
     "typescript": "^5.9.3"
   }
