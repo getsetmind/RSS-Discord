@@ -5,7 +5,6 @@
   "scripts": {
     "start": "bun run src/main.ts",
     "dev": "bun --watch run src/main.ts",
-    "test": "bun run src/main.ts --test",
     "check": "tsc --noEmit && biome check",
     "format": "biome check --write --unsafe ."
   },
