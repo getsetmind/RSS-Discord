@@ -1,9 +1,9 @@
 import { resolve } from "node:path";
-import { loadConfig } from "./config.ts";
-import { buildEmbed, sendToDiscord } from "./discord.ts";
-import { fetchFeed } from "./feed.ts";
-import { Store } from "./store.ts";
-import type { FeedConfig } from "./types.ts";
+import { loadConfig } from "./config";
+import { buildEmbed, sendToDiscord } from "./discord";
+import { fetchFeed } from "./feed";
+import { Store } from "./store";
+import type { FeedConfig } from "./types";
 
 const SEND_DELAY_MS = 600;
 const MAX_HISTORY = 200;

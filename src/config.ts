@@ -1,4 +1,4 @@
-import { type AppConfig, appConfigSchema } from "./types.ts";
+import { type AppConfig, appConfigSchema } from "./types";
 
 export async function loadConfig(path: string): Promise<AppConfig> {
 	const file = Bun.file(path);

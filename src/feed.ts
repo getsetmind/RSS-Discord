@@ -1,5 +1,5 @@
 import { parseFeed } from "feedsmith";
-import type { FeedItem } from "./types.ts";
+import type { FeedItem } from "./types";
 
 type ParseResult = ReturnType<typeof parseFeed>;
 type FeedOf<F extends ParseResult["format"]> = Extract<

@@ -3,7 +3,7 @@ import type {
 	DiscordWebhookPayload,
 	FeedConfig,
 	FeedItem,
-} from "./types.ts";
+} from "./types";
 
 const TITLE_MAX = 256;
 const DESCRIPTION_MAX = 4096;

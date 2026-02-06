@@ -1,6 +1,6 @@
 import { mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
-import type { SentStore } from "./types.ts";
+import type { SentStore } from "./types";
 
 export class Store {
 	private data: SentStore = {};
