@@ -8,6 +8,29 @@ import type { AppConfig, FeedConfig } from "./types.ts";
 const SEND_DELAY_MS = 600;
 const STORE_PATH = resolve("data", "sent.json");
 
+async function testFeed(
+  feedConfig: FeedConfig,
+  config: AppConfig,
+): Promise<void> {
+  console.log(`[${feedConfig.name}] Fetching for test...`);
+
+  const items = await fetchFeed(feedConfig.url);
+  if (items.length === 0) {
+    console.log(`[${feedConfig.name}] No items in feed.`);
+    return;
+  }
+
+  const item = items[0];
+  if (!item) {
+    console.log(`[${feedConfig.name}] No items in feed.`);
+    return;
+  }
+  const color = getColor(feedConfig, config);
+  const embed = buildEmbed(item, feedConfig, color);
+  await sendToDiscord(feedConfig.webhookUrl, embed);
+  console.log(`[${feedConfig.name}] Test sent: ${item.title}`);
+}
+
 async function processFeed(
   feedConfig: FeedConfig,
   config: AppConfig,
@@ -47,8 +70,18 @@ async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const configPath = args.find((a) => !a.startsWith("--")) ?? "config.json";
   const runOnce = args.includes("--once");
+  const runTest = args.includes("--test");
 
   const config = await loadConfig(configPath);
+
+  if (runTest) {
+    await Promise.allSettled(
+      config.feeds.map((feed) => testFeed(feed, config)),
+    );
+    console.log("Test done.");
+    return;
+  }
+
   const store = new Store(STORE_PATH, getMaxHistory(config));
   await store.load();
 
