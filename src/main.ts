@@ -45,7 +45,18 @@ async function processFeed(
 	}
 }
 
+function printTitle(): void {
+	process.stdout.write("\x1b]0;RSS Discord\x07");
+	const title = `
+  ╦═╗╔═╗╔═╗  ╔╦╗┬┌─┐┌─┐┌─┐┬─┐┌┬┐
+  ╠╦╝╚═╗╚═╗   ║║│└─┐│  │ │├┬┘ ││
+  ╩╚═╚═╝╚═╝  ═╩╝┴└─┘└─┘└─┘┴└──┴┘  v${process.env.npm_package_version ?? "1.0.0"}
+`;
+	console.log(title);
+}
+
 async function main(): Promise<void> {
+	printTitle();
 	const args = process.argv.slice(2);
 	const configPath = args.find((a) => !a.startsWith("--")) ?? "config.json";
 	const runOnce = args.includes("--once");
