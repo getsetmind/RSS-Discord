@@ -7,7 +7,7 @@
     "dev": "bun --watch run src/main.ts",
     "test": "bun run src/main.ts --test",
     "check": "tsc --noEmit && biome check",
-    "format": "biome format --write ."
+    "format": "biome check --write --unsafe ."
   },
   "dependencies": {
     "feedsmith": "^2.9.0",
