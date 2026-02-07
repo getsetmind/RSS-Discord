@@ -1,21 +1,21 @@
 {
-  "name": "rss-discord",
-  "version": "1.0.0",
-  "type": "module",
-  "scripts": {
-    "start": "bun run src/main.ts",
-    "dev": "bun --watch run src/main.ts",
-    "build": "bun build --compile src/main.ts --outfile rss-discord",
-    "check": "tsc --noEmit && biome check",
-    "format": "biome check --write --unsafe ."
-  },
-  "dependencies": {
-    "feedsmith": "^2.9.0",
-    "zod": "^4.3.6"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "^2.3.14",
-    "@types/bun": "latest",
-    "typescript": "^5.9.3"
-  }
+	"name": "rss-discord",
+	"version": "1.0.0",
+	"type": "module",
+	"scripts": {
+		"start": "bun run src/main.ts",
+		"dev": "bun --watch run src/main.ts",
+		"build": "bun build --compile src/main.ts --outfile rss-discord",
+		"check": "tsc --noEmit && biome check",
+		"format": "biome check --write --unsafe ."
+	},
+	"dependencies": {
+		"feedsmith": "^2.9.0",
+		"zod": "^4.3.6"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.3.14",
+		"@types/bun": "latest",
+		"typescript": "^5.9.3"
+	}
 }
