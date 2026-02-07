@@ -31,7 +31,7 @@ async function processFeed(
 	for (const item of newItems.reverse()) {
 		try {
 			const embed = buildEmbed(item, feedConfig, feedConfig.color);
-			await sendToDiscord(feedConfig.webhookUrl, embed);
+			await sendToDiscord(feedConfig.webhookUrl, embed, feedConfig.url);
 			await store.markSent(feedConfig.url, item.id);
 			console.log(`[${feedConfig.name}] Sent: ${item.title}`);
 			await Bun.sleep(SEND_DELAY_MS);

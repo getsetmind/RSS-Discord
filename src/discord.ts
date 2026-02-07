@@ -8,6 +8,22 @@ import type {
 const TITLE_MAX = 256;
 const DESCRIPTION_MAX = 4096;
 
+const GITHUB_AVATAR_URL = "https://github.com/github.png";
+const RSS_AVATAR_URL =
+	"https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Feed-icon.svg/128px-Feed-icon.svg.png";
+
+interface WebhookIdentity {
+	username: string;
+	avatarUrl: string;
+}
+
+function resolveWebhookIdentity(feedUrl: string): WebhookIdentity {
+	if (new URL(feedUrl).hostname === "github.com") {
+		return { username: "GitHub", avatarUrl: GITHUB_AVATAR_URL };
+	}
+	return { username: "RSS", avatarUrl: RSS_AVATAR_URL };
+}
+
 function truncate(text: string, max: number): string {
 	if (text.length <= max) return text;
 	return `${text.slice(0, max - 3)}...`;
@@ -47,8 +63,14 @@ export function buildEmbed(
 export async function sendToDiscord(
 	webhookUrl: string,
 	embed: DiscordEmbed,
+	feedUrl: string,
 ): Promise<void> {
-	const payload: DiscordWebhookPayload = { embeds: [embed] };
+	const identity = resolveWebhookIdentity(feedUrl);
+	const payload: DiscordWebhookPayload = {
+		embeds: [embed],
+		username: identity.username,
+		avatar_url: identity.avatarUrl,
+	};
 
 	const response = await fetch(webhookUrl, {
 		method: "POST",

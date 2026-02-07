@@ -40,4 +40,6 @@ export interface DiscordEmbed {
 
 export interface DiscordWebhookPayload {
 	embeds: DiscordEmbed[];
+	username?: string;
+	avatar_url?: string;
 }
