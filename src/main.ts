@@ -5,10 +5,26 @@ import { fetchFeed } from "./feed";
 import { Store } from "./store";
 import type { FeedConfig } from "./types";
 
+/**
+ * @description 各アイテム送信間の待機時間(ms)
+ */
 const SEND_DELAY_MS = 600;
+
+/**
+ * @description フィードごとの送信済みID最大保持数
+ */
 const MAX_HISTORY = 200;
+
+/**
+ * @description 送信済みストアのファイルパス
+ */
 const STORE_PATH = resolve("data", "sent.json");
 
+/**
+ * @description フィードを取得し未送信アイテムをDiscordに送信する
+ * @param feedConfig - フィード設定
+ * @param store - 送信済みストア
+ */
 async function processFeed(
 	feedConfig: FeedConfig,
 	store: Store,
@@ -45,6 +61,9 @@ async function processFeed(
 	}
 }
 
+/**
+ * @description CLIのタイトルバナーとウィンドウタイトルを表示する
+ */
 function printTitle(): void {
 	process.stdout.write("\x1b]0;RSS Discord\x07");
 	const title = `
@@ -55,6 +74,22 @@ function printTitle(): void {
 	console.log(title);
 }
 
+/**
+ * @description processFeedのエラーをログ出力するラッパーを返す
+ * @param feed - フィード設定
+ * @param store - 送信済みストア
+ */
+function runFeedWithErrorLog(feed: FeedConfig, store: Store): () => void {
+	return () => {
+		processFeed(feed, store).catch((err) =>
+			console.error(`[${feed.name}] Error:`, err),
+		);
+	};
+}
+
+/**
+ * @description アプリケーションのエントリポイント
+ */
 async function main(): Promise<void> {
 	printTitle();
 	const args = process.argv.slice(2);
@@ -77,18 +112,12 @@ async function main(): Promise<void> {
 	}
 
 	for (const feed of config.feeds) {
-		const interval = feed.intervalMinutes * 60 * 1000;
+		const intervalMs = feed.intervalMinutes * 60 * 1000;
 		console.log(`[${feed.name}] Polling every ${feed.intervalMinutes}min`);
 
-		processFeed(feed, store).catch((err) =>
-			console.error(`[${feed.name}] Error:`, err),
-		);
-
-		setInterval(() => {
-			processFeed(feed, store).catch((err) =>
-				console.error(`[${feed.name}] Error:`, err),
-			);
-		}, interval);
+		const run = runFeedWithErrorLog(feed, store);
+		run();
+		setInterval(run, intervalMs);
 	}
 
 	console.log("Polling started. Press Ctrl+C to stop.");
