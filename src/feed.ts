@@ -34,9 +34,11 @@ export async function fetchFeed(url: string): Promise<FeedItem[]> {
 			Accept:
 				"application/rss+xml, application/atom+xml, application/xml, text/xml",
 		},
+		signal: AbortSignal.timeout(15_000),
 	});
 
 	if (!response.ok) {
+		await response.text();
 		throw new Error(`HTTP ${response.status} fetching ${url}`);
 	}
 

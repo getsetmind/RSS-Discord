@@ -75,16 +75,23 @@ function printTitle(): void {
 }
 
 /**
- * @description processFeedのエラーをログ出力するラッパーを返す
+ * @description フィードのポーリングを開始し、完了後にsetTimeoutで次回をスケジュールする
  * @param feed - フィード設定
  * @param store - 送信済みストア
  */
-function runFeedWithErrorLog(feed: FeedConfig, store: Store): () => void {
-	return () => {
-		processFeed(feed, store).catch((err) =>
-			console.error(`[${feed.name}] Error:`, err),
-		);
+function startPolling(feed: FeedConfig, store: Store): void {
+	const intervalMs = feed.intervalMinutes * 60 * 1000;
+
+	const poll = async () => {
+		try {
+			await processFeed(feed, store);
+		} catch (err) {
+			console.error(`[${feed.name}] Error:`, err);
+		}
+		setTimeout(poll, intervalMs);
 	};
+
+	poll();
 }
 
 /**
@@ -112,12 +119,8 @@ async function main(): Promise<void> {
 	}
 
 	for (const feed of config.feeds) {
-		const intervalMs = feed.intervalMinutes * 60 * 1000;
 		console.log(`[${feed.name}] Polling every ${feed.intervalMinutes}min`);
-
-		const run = runFeedWithErrorLog(feed, store);
-		run();
-		setInterval(run, intervalMs);
+		startPolling(feed, store);
 	}
 
 	console.log("Polling started. Press Ctrl+C to stop.");

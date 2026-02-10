@@ -78,6 +78,7 @@ async function postWebhook(
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify(payload),
+		signal: AbortSignal.timeout(30_000),
 	});
 }
 
@@ -150,14 +151,17 @@ export async function sendToDiscord(
 
 		const retry = await postWebhook(webhookUrl, payload);
 		if (!isSuccessResponse(retry)) {
+			await retry.text();
 			throw new Error(
 				`Discord webhook failed after retry: HTTP ${retry.status}`,
 			);
 		}
+		await retry.text();
 		return;
 	}
 
 	if (isSuccessResponse(response)) {
+		await response.text();
 		return;
 	}
 
