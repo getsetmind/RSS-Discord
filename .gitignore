@@ -1,5 +1,37 @@
-node_modules/
+# Binaries (root only)
+/rss-discord
+/rss-discord.exe
+*.dll
+*.so
+*.dylib
+
+# Build output
+out/
+dist/
+
+# Logs
+logs/
+*.log
+
+# Data
 data/
+
+# Config (contains secrets)
 config.json
-bun.lock
-rss-discord.exe
+
+# Environment
+.env
+.env.*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code
+nul

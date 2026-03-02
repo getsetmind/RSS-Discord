@@ -1,0 +1,45 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    permissions:
+      contents: write
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+            name: rss-discord-linux-x64
+          - goos: darwin
+            goarch: amd64
+            name: rss-discord-darwin-x64
+          - goos: windows
+            goarch: amd64
+            name: rss-discord-windows-x64.exe
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+
+      - name: Build
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: go build -ldflags "-X main.version=${{ github.event.release.tag_name }}" -o ${{ matrix.name }} ./cmd/rss-discord
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          overwrite_files: true
+          files: |
+            ${{ matrix.name }}
+            config.example.json
