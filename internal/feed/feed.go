@@ -78,11 +78,12 @@ func normalize(item *gofeed.Item) FeedItem {
 	}
 
 	var pubDate string
-	if item.PublishedParsed != nil {
+	switch {
+	case item.PublishedParsed != nil:
 		pubDate = item.PublishedParsed.Format(time.RFC3339)
-	} else if item.UpdatedParsed != nil {
+	case item.UpdatedParsed != nil:
 		pubDate = item.UpdatedParsed.Format(time.RFC3339)
-	} else if item.Published != "" {
+	case item.Published != "":
 		pubDate = item.Published
 	}
 
