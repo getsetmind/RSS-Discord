@@ -4,10 +4,14 @@ OUT_DIR := out
 VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 LDFLAGS := -ldflags "-X main.version=$(VERSION)"
 
+ifeq ($(OS),Windows_NT)
+  EXT := .exe
+endif
+
 .PHONY: build build-all build-linux build-windows build-darwin lint test clean
 
 build:
-	go build $(LDFLAGS) -o $(BINARY_NAME) $(CMD_PATH)
+	go build $(LDFLAGS) -o $(BINARY_NAME)$(EXT) $(CMD_PATH)
 
 build-all: build-linux build-windows build-darwin
 
