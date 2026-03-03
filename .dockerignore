@@ -1,0 +1,10 @@
+.git
+.github
+.claude
+*.md
+!config.example.json
+logs/
+data/
+config.json
+Makefile
+.golangci.yml
