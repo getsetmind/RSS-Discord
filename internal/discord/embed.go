@@ -1,6 +1,7 @@
 package discord
 
 import (
+	"html"
 	"regexp"
 	"time"
 
@@ -63,6 +64,7 @@ func truncate(text string, max int) string {
 	return string(runes[:max-3]) + "..."
 }
 
-func stripHTML(html string) string {
-	return htmlTagRegex.ReplaceAllString(html, "")
+func stripHTML(s string) string {
+	s = htmlTagRegex.ReplaceAllString(s, "")
+	return html.UnescapeString(s)
 }
