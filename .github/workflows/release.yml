@@ -14,12 +14,15 @@ jobs:
           - goos: linux
             goarch: amd64
             name: rss-discord-linux-x64
+            zip: rss-discord-linux-x64.zip
           - goos: darwin
             goarch: amd64
             name: rss-discord-darwin-x64
+            zip: rss-discord-darwin-x64.zip
           - goos: windows
             goarch: amd64
             name: rss-discord-windows-x64.exe
+            zip: rss-discord-windows-x64.zip
 
     runs-on: ubuntu-latest
 
@@ -41,11 +44,11 @@ jobs:
           go install github.com/google/go-licenses@latest
           go-licenses report ./cmd/rss-discord --template .github/licenses.tmpl > LICENSES_THIRD_PARTY.txt 2>/dev/null || true
 
+      - name: Package as zip
+        run: zip ${{ matrix.zip }} ${{ matrix.name }} config.example.json LICENSES_THIRD_PARTY.txt
+
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
         with:
           overwrite_files: true
-          files: |
-            ${{ matrix.name }}
-            config.example.json
-            LICENSES_THIRD_PARTY.txt
+          files: ${{ matrix.zip }}
