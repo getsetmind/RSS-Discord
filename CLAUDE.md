@@ -1,8 +1,4 @@
-# CLAUDE.md
-
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
-## Commands
+# Commands
 
 ```bash
 # 開発
@@ -19,7 +15,7 @@ make build-all                        # 全プラットフォーム
 make clean                            # ビルド成果物を削除
 ```
 
-## Architecture
+# Architecture
 
 RSS/Atomフィードをポーリングし、Discord Webhookで新着を通知するCLIアプリ。
 
@@ -41,7 +37,7 @@ internal/
 
 **データフロー**: `startPolling` → `FetchFeed` → フィルタ → `BuildEmbed` → `SendWebhook` → `MarkSent`
 
-## Key Points
+# Key Points
 
 - 言語: Go (外部依存: gofeed のみ)
 - 設定バリデーション: 手書きValidate()メソッド
