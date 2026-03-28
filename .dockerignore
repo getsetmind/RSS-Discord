@@ -1,10 +1,33 @@
+# VCS & CI
 .git
 .github
+.gitignore
+
+# Claude Code
 .claude
-*.md
-!config.example.json
-logs/
-data/
-config.json
+CLAUDE.md
+AGENTS.MD
+
+# Build & IDE
+out/
+dist/
+.idea/
+.vscode/
 Makefile
 .golangci.yml
+
+# Runtime data & secrets
+data/
+logs/
+config.json
+.env
+.env.*
+
+# Docs
+LICENSE
+*.md
+!README.md
+
+# Docker
+Dockerfile
+.dockerignore

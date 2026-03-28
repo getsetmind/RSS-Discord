@@ -1,25 +1,16 @@
-# Binaries (root only)
+# Binaries
 /rss-discord
 /rss-discord.exe
-*.dll
-*.so
-*.dylib
-
-# Build output
 out/
 dist/
 
-# Logs
+# Runtime data
+data/
 logs/
 *.log
 
-# Data
-data/
-
 # Config (contains secrets)
 config.json
-
-# Environment
 .env
 .env.*
 
