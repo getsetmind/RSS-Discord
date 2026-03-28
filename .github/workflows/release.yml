@@ -39,13 +39,14 @@ jobs:
           GOARCH: ${{ matrix.goarch }}
         run: go build -ldflags "-X main.version=${{ github.event.release.tag_name }}" -o ${{ matrix.name }} ./cmd/rss-discord
 
-      - name: Collect dependency licenses
+      - name: Collect licenses
         run: |
           go install github.com/google/go-licenses@latest
           go-licenses report ./cmd/rss-discord --template .github/licenses.tmpl > LICENSES_THIRD_PARTY.txt 2>/dev/null || true
+          cat THIRD_PARTY_LICENSES.md >> LICENSES_THIRD_PARTY.txt
 
       - name: Package as zip
-        run: zip ${{ matrix.zip }} ${{ matrix.name }} config.example.json LICENSES_THIRD_PARTY.txt THIRD_PARTY_LICENSES.md
+        run: zip ${{ matrix.zip }} ${{ matrix.name }} config.example.json LICENSES_THIRD_PARTY.txt
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
