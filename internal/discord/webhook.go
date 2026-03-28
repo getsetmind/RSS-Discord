@@ -14,7 +14,7 @@ import (
 
 const (
 	githubAvatarURL = "https://github.com/github.png"
-	rssAvatarURL    = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Feed-icon.svg/128px-Feed-icon.svg.png"
+	rssAvatarURL    = "https://raw.githubusercontent.com/getsetmind/RSS-Discord/main/assets/rss-icon.png"
 )
 
 type webhookPayload struct {
