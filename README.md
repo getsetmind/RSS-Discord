@@ -6,25 +6,25 @@ A lightweight CLI tool that polls RSS/Atom feeds and sends new entries to Discor
 
 ## Features
 
-- RSS and Atom feed support (powered by [gofeed](https://github.com/mmcdole/gofeed))
-- Multiple feeds with independent polling intervals
-- Discord Webhook integration with rich embeds
-- Rate limit handling (HTTP 429 retry)
-- Persistent tracking of sent items (`data/sent.json`)
-- Structured logging (console with ANSI colors + daily JSON log files)
-- Graceful shutdown (SIGINT/SIGTERM)
-- Docker support
+- Send new blog posts, release notes, and other feed updates to Discord automatically
+- Watch multiple feeds at different intervals from one small config file
+- Avoid duplicate notifications by remembering already-sent entries
+- Keep Discord messages easy to scan with titles, links, timestamps, and feed names
+- Recover from Discord rate limits with an automatic retry
+- Run locally, in Docker, or from a scheduled one-shot command
+- Check what happened later with daily log files
 
 ## Quick Start
 
 ### Prerequisites
 
-- Go 1.25+
+- Bun 1.3+
 - A Discord Webhook URL
 
 ### Setup
 
 ```bash
+bun install
 cp config.example.json config.json
 # Edit config.json with your feed URLs and Webhook URLs
 ```
@@ -33,17 +33,18 @@ cp config.example.json config.json
 
 ```bash
 # Start polling
-go run ./cmd/rss-discord
+bun start
 
 # Run once and exit
-go run ./cmd/rss-discord --once
+bun run dev --once
 ```
 
 ### Build
 
 ```bash
-make build          # Build for current platform
-make build-all      # Cross-compile (Linux, Windows, macOS)
+bun run build       # Bundle into dist/
+bun run lint        # Biome lint
+bun run typecheck   # TypeScript typecheck
 ```
 
 ### Docker

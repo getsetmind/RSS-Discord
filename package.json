@@ -1,0 +1,39 @@
+{
+	"name": "rss-discord",
+	"version": "1.0.0",
+	"description": "A lightweight CLI tool that polls RSS/Atom feeds and sends new entries to Discord via Webhooks.",
+	"type": "module",
+	"main": "src/main.ts",
+	"bin": {
+		"rss-discord": "src/main.ts"
+	},
+	"scripts": {
+		"dev": "bun src/main.ts",
+		"start": "bun src/main.ts",
+		"build": "bun build src/main.ts --target=bun --outdir=dist",
+		"typecheck": "tsc",
+		"lint": "biome check .",
+		"format": "biome check --write --unsafe ."
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/getsetmind/RSS-Discord.git"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/getsetmind/RSS-Discord/issues"
+	},
+	"homepage": "https://github.com/getsetmind/RSS-Discord#readme",
+	"dependencies": {
+		"rss-parser": "^3.13.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.2",
+		"@types/bun": "^1.3.14",
+		"@yuu1111/biome-config": "^1.0.4",
+		"@yuu1111/tsconfig": "^1.0.3",
+		"typescript": "^6.0.3"
+	}
+}

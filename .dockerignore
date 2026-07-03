@@ -11,10 +11,11 @@ AGENTS.MD
 # Build & IDE
 out/
 dist/
+node_modules/
+package-lock.json
 .idea/
 .vscode/
 Makefile
-.golangci.yml
 
 # Runtime data & secrets
 data/

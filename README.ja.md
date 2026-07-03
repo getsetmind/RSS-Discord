@@ -6,25 +6,25 @@ RSS/Atom フィードをポーリングし、新着エントリを Discord Webho
 
 ## 特徴
 
-- RSS / Atom フィード対応 ([gofeed](https://github.com/mmcdole/gofeed) 使用)
-- 複数フィードの独立したポーリング間隔
-- Discord Webhook によるリッチな Embed 通知
-- レートリミット対応 (HTTP 429 リトライ)
-- 送信済みアイテムの永続化 (`data/sent.json`)
-- 構造化ログ (コンソール ANSI 色付き + 日別 JSON ログファイル)
-- グレースフルシャットダウン (SIGINT/SIGTERM)
-- Docker 対応
+- ブログ記事、リリースノート、ニュースなどの新着を Discord に自動通知
+- 1つの設定ファイルで複数フィードを管理し、フィードごとに通知間隔を指定
+- 送信済みエントリを記録して、同じ投稿の重複通知を防止
+- タイトル、リンク、日時、フィード名つきの見やすい Discord メッセージを送信
+- Discord のレートリミット時は自動で待ってリトライ
+- 常駐実行、Docker 実行、スケジューラからの1回実行に対応
+- 日別ログであとから通知状況を確認可能
 
 ## クイックスタート
 
 ### 必要なもの
 
-- Go 1.25+
+- Bun 1.3+
 - Discord Webhook URL
 
 ### セットアップ
 
 ```bash
+bun install
 cp config.example.json config.json
 # config.json にフィード URL と Webhook URL を設定
 ```
@@ -33,17 +33,18 @@ cp config.example.json config.json
 
 ```bash
 # ポーリング開始
-go run ./cmd/rss-discord
+bun start
 
 # 1回実行して終了
-go run ./cmd/rss-discord --once
+bun run dev --once
 ```
 
 ### ビルド
 
 ```bash
-make build          # 現在のプラットフォーム用にビルド
-make build-all      # クロスコンパイル (Linux, Windows, macOS)
+bun run build       # dist/ にバンドル
+bun run lint        # Biome lint
+bun run typecheck   # 型チェック
 ```
 
 ### Docker

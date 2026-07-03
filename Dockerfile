@@ -1,13 +1,13 @@
-FROM golang:1.25-alpine AS build
+FROM oven/bun:1.3.14-alpine AS deps
 WORKDIR /src
-COPY go.mod go.sum ./
-RUN go mod download
-COPY . .
-RUN go build -ldflags "-s -w" -o /rss-discord ./cmd/rss-discord
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile --production
 
-FROM alpine:3.21
-RUN apk add --no-cache ca-certificates tzdata
+FROM oven/bun:1.3.14-alpine
 WORKDIR /app
-COPY --from=build /rss-discord .
+COPY --from=deps /src/node_modules ./node_modules
+COPY package.json bun.lock ./
+COPY src ./src
+COPY config.example.json ./
 VOLUME ["/app/logs", "/app/data"]
-ENTRYPOINT ["./rss-discord"]
+ENTRYPOINT ["bun", "src/main.ts"]

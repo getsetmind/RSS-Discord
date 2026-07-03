@@ -3,55 +3,25 @@ under their respective licenses.
 
 ---
 
-## github.com/PuerkitoBio/goquery
+## rss-parser
 
-- License: BSD-3-Clause
-- URL: https://github.com/PuerkitoBio/goquery/blob/v1.8.0/LICENSE
+- License: MIT
+- URL: https://github.com/rbren/rss-parser/blob/master/LICENSE
 
-## github.com/andybalholm/cascadia
+## entities
 
 - License: BSD-2-Clause
-- URL: https://github.com/andybalholm/cascadia/blob/v1.3.1/LICENSE
+- URL: https://github.com/fb55/entities/blob/master/LICENSE
 
-## github.com/json-iterator/go
-
-- License: MIT
-- URL: https://github.com/json-iterator/go/blob/v1.1.12/LICENSE
-
-## github.com/mmcdole/gofeed
+## xml2js
 
 - License: MIT
-- URL: https://github.com/mmcdole/gofeed/blob/v1.3.0/LICENSE
+- URL: https://github.com/Leonidas-from-XIV/node-xml2js/blob/master/LICENSE
 
-## github.com/mmcdole/goxpp
-
-- License: MIT
-- URL: https://github.com/mmcdole/goxpp/blob/a0c311522b23/LICENSE
-
-## github.com/modern-go/concurrent
-
-- License: Apache-2.0
-- URL: https://github.com/modern-go/concurrent/blob/bacd9c7ef1dd/LICENSE
-
-## github.com/modern-go/reflect2
-
-- License: Apache-2.0
-- URL: https://github.com/modern-go/reflect2/blob/v1.0.2/LICENSE
-
-## github.com/yuu1111/rss-discord
+## sax
 
 - License: MIT
-- URL: https://github.com/yuu1111/rss-discord/blob/HEAD/LICENSE
-
-## golang.org/x/net/html
-
-- License: BSD-3-Clause
-- URL: https://cs.opensource.google/go/x/net/+/v0.4.0:LICENSE
-
-## golang.org/x/text
-
-- License: BSD-3-Clause
-- URL: https://cs.opensource.google/go/x/text/+/v0.5.0:LICENSE
+- URL: https://github.com/isaacs/sax-js/blob/main/LICENSE
 
 ## Feed Icon (assets/rss-icon.png)
 

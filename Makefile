@@ -1,35 +1,28 @@
 BINARY_NAME := rss-discord
-CMD_PATH := ./cmd/rss-discord
 OUT_DIR := out
-VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
-LDFLAGS := -ldflags "-X main.version=$(VERSION)"
 
-ifeq ($(OS),Windows_NT)
-  EXT := .exe
-endif
+.PHONY: install build build-all build-linux build-windows build-darwin lint test clean
 
-.PHONY: build build-all build-linux build-windows build-darwin lint test clean
+install:
+	bun install --frozen-lockfile
 
 build:
-	go build $(LDFLAGS) -o $(BINARY_NAME)$(EXT) $(CMD_PATH)
+	bun run build
 
-build-all: build-linux build-windows build-darwin
+build-all: build
 
-build-linux:
-	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o $(OUT_DIR)/$(BINARY_NAME)-linux-x64 $(CMD_PATH)
+build-linux: build
 
-build-windows:
-	GOOS=windows GOARCH=amd64 go build $(LDFLAGS) -o $(OUT_DIR)/$(BINARY_NAME)-windows-x64.exe $(CMD_PATH)
+build-windows: build
 
-build-darwin:
-	GOOS=darwin GOARCH=amd64 go build $(LDFLAGS) -o $(OUT_DIR)/$(BINARY_NAME)-darwin-x64 $(CMD_PATH)
+build-darwin: build
 
 lint:
-	golangci-lint run ./...
+	bun run lint
 
 test:
-	go test ./...
+	bun test
 
 clean:
-	rm -f $(BINARY_NAME) $(BINARY_NAME).exe
+	rm -rf dist
 	rm -rf $(OUT_DIR)

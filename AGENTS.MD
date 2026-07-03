@@ -2,16 +2,15 @@
 
 ```bash
 # 開発
-go run ./cmd/rss-discord              # ポーリング開始
-go run ./cmd/rss-discord --once       # 1回実行して終了
+bun run dev                           # ポーリング開始
+bun run dev --once                    # 1回実行して終了
 
 # 品質チェック
-make lint                             # golangci-lint
-go vet ./...                          # go vet
+bun run lint                          # Biome lint
+bun run typecheck                     # TypeScript型チェック
 
 # ビルド
-make build                            # 現在プラットフォーム用にビルド
-make build-all                        # 全プラットフォーム
+bun run build                         # dist/にバンドル
 make clean                            # ビルド成果物を削除
 ```
 
@@ -20,28 +19,24 @@ make clean                            # ビルド成果物を削除
 RSS/Atomフィードをポーリングし、Discord Webhookで新着を通知するCLIアプリ。
 
 ```
-cmd/
-└── rss-discord/
-    └── main.go            # エントリーポイント、ロガー、シグナル処理、バナー
-internal/
-├── config/
-│   └── config.go          # Config struct, JSON読み込み, バリデーション
-├── feed/
-│   └── feed.go            # FeedItem, FetchFeed (gofeed使用)
-├── discord/
-│   ├── embed.go           # Embed構築
-│   └── webhook.go         # Webhook送信 (429リトライ含む)
-└── store/
-    └── store.go           # 送信済みID永続化 (sync.Mutex)
+src/
+├── main.ts                # エントリーポイント、シグナル処理、ポーリング
+├── config.ts              # JSON読み込み、バリデーション
+├── feed.ts                # FeedItem正規化、FetchFeed (rss-parser使用)
+├── discord.ts             # Embed構築、Webhook送信 (429リトライ含む)
+├── store.ts               # 送信済みID永続化
+├── logger.ts              # コンソールANSI色付き + 日別JSONログ
+└── types.ts               # 共有型定義
 ```
 
-**データフロー**: `startPolling` → `FetchFeed` → フィルタ → `BuildEmbed` → `SendWebhook` → `MarkSent`
+**データフロー**: `startPolling` → `fetchFeed` → フィルタ → `buildEmbed` → `sendWebhook` → `markSent`
 
 # Key Points
 
-- 言語: Go (外部依存: gofeed のみ)
-- 設定バリデーション: 手書きValidate()メソッド
+- 言語: TypeScript (Bun 1.3+)
+- 設定バリデーション: 手書きバリデーション
 - 設定ファイル: `config.json` (テンプレート: `config.example.json`)
 - データ永続化: `data/sent.json` (フィードURL → 送信済みID配列)
-- ログ: slog (コンソール ANSI色付き + ファイル JSON)
-- シャットダウン: signal.NotifyContext (SIGINT/SIGTERM)
+- ログ: 独自Logger (コンソール ANSI色付き + ファイル JSON)
+- シャットダウン: AbortController (SIGINT/SIGTERM)
+- 共通設定: `@yuu1111/tsconfig`, `@yuu1111/biome-config`

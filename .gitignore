@@ -1,8 +1,7 @@
 # Binaries
-/rss-discord
-/rss-discord.exe
-out/
+
 dist/
+node_modules/
 
 # Runtime data
 data/
@@ -24,5 +23,3 @@ config.json
 .DS_Store
 Thumbs.db
 
-# Claude Code
-nul
