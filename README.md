@@ -29,6 +29,12 @@ cp .env.example .env
 # Edit .env with your feed URL and Webhook URL
 ```
 
+If an old `config.json` exists and `.env` does not, the first startup migrates it automatically. You can also run the same migration manually:
+
+```bash
+bun run migrate:config
+```
+
 ### Run
 
 ```bash

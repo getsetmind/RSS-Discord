@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { migrateLegacyConfigIfNeeded } from "./config-migration.js";
 import type { AppConfig, FeedConfig } from "./types.js";
 
 /**
@@ -55,8 +56,18 @@ export interface LoadedConfig {
  * Loads configuration from environment variables.
  */
 export function loadConfig(env: ConfigEnv = process.env): LoadedConfig {
+	const migration =
+		env === process.env
+			? migrateLegacyConfigIfNeeded(env)
+			: { migrated: false, feedCount: 0 };
 	const envConfig = loadConfigFromEnv(env);
 	if (envConfig !== undefined) {
+		if (migration.migrated) {
+			return {
+				config: envConfig.config,
+				source: "legacy-config-json:migrated-env",
+			};
+		}
 		return envConfig;
 	}
 

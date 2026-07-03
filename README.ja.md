@@ -29,6 +29,12 @@ cp .env.example .env
 # .env にフィード URL と Webhook URL を設定
 ```
 
+旧 `config.json` が残っていて `.env` がない場合は、初回起動時に自動変換されます。同じ変換を手動で実行することもできます:
+
+```bash
+bun run migrate:config
+```
+
 ### 実行
 
 ```bash
