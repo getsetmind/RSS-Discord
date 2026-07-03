@@ -25,7 +25,7 @@ jobs:
         run: bun run build
 
       - name: Package as zip
-        run: zip -r rss-discord-bun.zip dist src package.json bun.lock config.example.json THIRD_PARTY_LICENSES.md
+        run: zip -r rss-discord-bun.zip dist src scripts package.json bun.lock .env.example THIRD_PARTY_LICENSES.md
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
