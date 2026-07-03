@@ -61,7 +61,7 @@ export function loadConfig(env: ConfigEnv = process.env): LoadedConfig {
 	}
 
 	throw new Error(
-		"設定が見つかりません。RSS_DISCORD_FEEDS_1_URL と RSS_DISCORD_FEEDS_1_WEBHOOK_URL を設定してください",
+		"設定が見つかりません。RSS_DISCORD_FEEDS_<番号>_URL と RSS_DISCORD_FEEDS_<番号>_WEBHOOK_URL を設定してください",
 	);
 }
 

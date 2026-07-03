@@ -141,6 +141,21 @@ describe("run", () => {
 		expect(dependencies.logs).toContain("info:Done.");
 	});
 
+	test("does not log Done when a one-shot feed fails", async () => {
+		const dependencies = createDependencies({
+			sendWebhook: async () => {
+				throw new Error("webhook down");
+			},
+		});
+
+		await run(true, dependencies);
+
+		expect(dependencies.logs).toContain(
+			"warn:一部フィードの処理に失敗しました",
+		);
+		expect(dependencies.logs).not.toContain("info:Done.");
+	});
+
 	test("starts polling until aborted", async () => {
 		const controller = new AbortController();
 		let delayCount = 0;
@@ -235,12 +250,14 @@ describe("processFeed", () => {
 			},
 		});
 
-		await processFeed(
-			feedConfig,
-			dependencies.store,
-			new AbortController().signal,
-			dependencies,
-		);
+		await expect(
+			processFeed(
+				feedConfig,
+				dependencies.store,
+				new AbortController().signal,
+				dependencies,
+			),
+		).resolves.toBe("failed");
 
 		expect(dependencies.logs).toContain("error:フィード取得失敗");
 	});
@@ -249,12 +266,14 @@ describe("processFeed", () => {
 		const dependencies = createDependencies();
 		await dependencies.store.markSent(feedConfig.url, "item-1");
 
-		await processFeed(
-			feedConfig,
-			dependencies.store,
-			new AbortController().signal,
-			dependencies,
-		);
+		await expect(
+			processFeed(
+				feedConfig,
+				dependencies.store,
+				new AbortController().signal,
+				dependencies,
+			),
+		).resolves.toBe("no-new-items");
 
 		expect(dependencies.webhooks).toHaveLength(0);
 		expect(dependencies.logs).toContain("info:No new items.");
@@ -265,12 +284,14 @@ describe("processFeed", () => {
 		const controller = new AbortController();
 		controller.abort();
 
-		await processFeed(
-			feedConfig,
-			dependencies.store,
-			controller.signal,
-			dependencies,
-		);
+		await expect(
+			processFeed(
+				feedConfig,
+				dependencies.store,
+				controller.signal,
+				dependencies,
+			),
+		).resolves.toBe("aborted");
 
 		expect(dependencies.webhooks).toHaveLength(0);
 	});
@@ -282,12 +303,14 @@ describe("processFeed", () => {
 			},
 		});
 
-		await processFeed(
-			feedConfig,
-			dependencies.store,
-			new AbortController().signal,
-			dependencies,
-		);
+		await expect(
+			processFeed(
+				feedConfig,
+				dependencies.store,
+				new AbortController().signal,
+				dependencies,
+			),
+		).resolves.toBe("failed");
 
 		expect(dependencies.logs).toContain("error:送信失敗");
 	});
@@ -299,12 +322,14 @@ describe("processFeed", () => {
 			},
 		});
 
-		await processFeed(
-			feedConfig,
-			dependencies.store,
-			new AbortController().signal,
-			dependencies,
-		);
+		await expect(
+			processFeed(
+				feedConfig,
+				dependencies.store,
+				new AbortController().signal,
+				dependencies,
+			),
+		).resolves.toBe("aborted");
 
 		expect(dependencies.webhooks).toHaveLength(1);
 	});

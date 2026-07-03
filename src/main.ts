@@ -119,6 +119,11 @@ export interface AppLogger {
 }
 
 /**
+ * Result of processing one feed.
+ */
+export type ProcessFeedResult = "sent" | "no-new-items" | "failed" | "aborted";
+
+/**
  * Default runtime dependencies.
  */
 const defaultDependencies: AppDependencies = {
@@ -189,11 +194,15 @@ export async function run(
 	process.once("SIGTERM", () => controller.abort());
 
 	if (runOnce) {
-		await Promise.all(
+		const results = await Promise.all(
 			config.feeds.map((feedConfig) =>
 				processFeed(feedConfig, store, controller.signal, dependencies),
 			),
 		);
+		if (results.includes("failed")) {
+			dependencies.logger.warn("一部フィードの処理に失敗しました");
+			return;
+		}
 		dependencies.logger.info("Done.");
 		return;
 	}
@@ -242,7 +251,7 @@ export async function processFeed(
 	store: SentStore,
 	signal: AbortSignal,
 	dependencies = defaultDependencies,
-): Promise<void> {
+): Promise<ProcessFeedResult> {
 	dependencies.logger.info("Fetching...", { feed: feedConfig.name });
 
 	let items: FeedItem[];
@@ -253,7 +262,7 @@ export async function processFeed(
 			feed: feedConfig.name,
 			error,
 		});
-		return;
+		return "failed";
 	}
 
 	const newItems = items.filter(
@@ -261,7 +270,7 @@ export async function processFeed(
 	);
 	if (newItems.length === 0) {
 		dependencies.logger.info("No new items.", { feed: feedConfig.name });
-		return;
+		return "no-new-items";
 	}
 
 	dependencies.logger.info("新着アイテム検出", {
@@ -271,7 +280,7 @@ export async function processFeed(
 
 	for (const item of newItems.reverse()) {
 		if (signal.aborted) {
-			return;
+			return "aborted";
 		}
 
 		const embed = dependencies.buildEmbed(item, feedConfig);
@@ -293,13 +302,14 @@ export async function processFeed(
 				title: item.title,
 				error,
 			});
-			return;
+			return "failed";
 		}
 
 		try {
 			await dependencies.delay(sendDelayMs, undefined, { signal });
 		} catch {
-			return;
+			return "aborted";
 		}
 	}
+	return "sent";
 }
