@@ -43,6 +43,7 @@ bun run dev --once
 
 ```bash
 bun run build       # dist/ にバンドル
+bun test            # 単体テスト
 bun run lint        # Biome lint
 bun run typecheck   # 型チェック
 ```

@@ -43,6 +43,7 @@ bun run dev --once
 
 ```bash
 bun run build       # Bundle into dist/
+bun test            # Unit tests
 bun run lint        # Biome lint
 bun run typecheck   # TypeScript typecheck
 ```

@@ -9,4 +9,4 @@ COPY --from=deps /src/node_modules ./node_modules
 COPY package.json bun.lock ./
 COPY src ./src
 VOLUME ["/app/logs", "/app/data"]
-ENTRYPOINT ["bun", "src/main.ts"]
+ENTRYPOINT ["bun", "src/cli.ts"]

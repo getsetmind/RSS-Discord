@@ -6,6 +6,7 @@ bun run dev                           # ポーリング開始
 bun run dev --once                    # 1回実行して終了
 
 # 品質チェック
+bun test                              # 単体テスト
 bun run lint                          # Biome lint
 bun run typecheck                     # TypeScript型チェック
 

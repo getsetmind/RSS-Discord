@@ -3,12 +3,13 @@
 	"version": "1.0.0",
 	"type": "module",
 	"scripts": {
-		"dev": "bun src/main.ts",
-		"start": "bun src/main.ts",
-		"build": "bun build src/main.ts --target=bun --outdir=dist",
+		"dev": "bun src/cli.ts",
+		"start": "bun src/cli.ts",
+		"build": "bun build src/cli.ts --target=bun --outdir=dist",
 		"typecheck": "tsc",
 		"lint": "biome check .",
-		"format": "biome check --write --unsafe ."
+		"format": "biome check --write --unsafe .",
+		"test": "bun test --coverage"
 	},
 	"license": "MIT",
 	"dependencies": {
