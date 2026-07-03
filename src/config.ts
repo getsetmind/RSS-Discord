@@ -22,16 +22,14 @@ export interface LoadedConfig {
 /**
  * Loads configuration from environment variables.
  */
-export function loadConfig(
-	env: ConfigEnv = process.env,
-): LoadedConfig {
+export function loadConfig(env: ConfigEnv = process.env): LoadedConfig {
 	const envConfig = loadConfigFromEnv(env);
 	if (envConfig !== undefined) {
 		return envConfig;
 	}
 
 	throw new Error(
-		"設定が見つかりません。RSS_DISCORD_CONFIG_JSON、RSS_DISCORD_CONFIG_BASE64、または単一フィード用の RSS_DISCORD_FEED_URL と RSS_DISCORD_WEBHOOK_URL を設定してください",
+		"設定が見つかりません。RSS_DISCORD_FEEDS_1_URL と RSS_DISCORD_FEEDS_1_WEBHOOK_URL を設定してください",
 	);
 }
 
@@ -39,80 +37,54 @@ export function loadConfig(
  * Loads configuration from supported environment variables.
  */
 function loadConfigFromEnv(env: ConfigEnv): LoadedConfig | undefined {
-	const json = getFirstEnv(env, [
-		"RSS_DISCORD_CONFIG_JSON",
-		"RSS_DISCORD_FEEDS_JSON",
-	]);
-	if (json !== undefined) {
-		const config = parseEnvJSON(json, "RSS_DISCORD_CONFIG_JSON");
-		return { config, source: "environment:RSS_DISCORD_CONFIG_JSON" };
-	}
-
-	const base64 = getFirstEnv(env, ["RSS_DISCORD_CONFIG_BASE64"]);
-	if (base64 !== undefined) {
-		const decoded = Buffer.from(base64, "base64").toString("utf8");
-		const config = parseEnvJSON(decoded, "RSS_DISCORD_CONFIG_BASE64");
-		return { config, source: "environment:RSS_DISCORD_CONFIG_BASE64" };
-	}
-
-	const singleFeed = parseSingleFeedEnv(env);
-	if (singleFeed !== undefined) {
-		const config = { feeds: [singleFeed] };
+	const indexedFeeds = parseIndexedFeedEnv(env);
+	if (indexedFeeds.length > 0) {
+		const config = { feeds: indexedFeeds };
 		validateConfig(config);
-		return { config, source: "environment:single-feed" };
+		return { config, source: "environment:indexed-feeds" };
 	}
 
 	return undefined;
 }
 
 /**
- * Parses a JSON environment variable into an application config.
+ * Parses numbered feed environment variables.
  */
-function parseEnvJSON(raw: string, source: string): AppConfig {
-	let parsed: unknown;
-	try {
-		parsed = JSON.parse(raw);
-	} catch (error) {
-		throw new Error(`${source} のJSONパースに失敗: ${formatError(error)}`);
-	}
-
-	const config = Array.isArray(parsed)
-		? { feeds: parsed.map((feed) => parseFeedConfig(feed)) }
-		: parseAppConfig(parsed);
-	validateConfig(config);
-	return config;
-}
-
-/**
- * Parses simple single-feed environment variables.
- */
-function parseSingleFeedEnv(env: ConfigEnv): FeedConfig | undefined {
-	const url = getFirstEnv(env, ["RSS_DISCORD_FEED_URL", "FEED_URL"]);
-	const webhookUrl = getFirstEnv(env, [
-		"RSS_DISCORD_WEBHOOK_URL",
-		"DISCORD_WEBHOOK_URL",
-		"WEBHOOK_URL",
-	]);
-	if (url === undefined && webhookUrl === undefined) {
-		return undefined;
-	}
-
-	return {
-		name: getFirstEnv(env, ["RSS_DISCORD_FEED_NAME", "FEED_NAME"]) ?? "RSS",
-		url: url ?? "",
-		webhookUrl: webhookUrl ?? "",
+function parseIndexedFeedEnv(env: ConfigEnv): FeedConfig[] {
+	const indexes = findFeedIndexes(env);
+	return indexes.map((index) => ({
+		name:
+			getFirstEnv(env, [`RSS_DISCORD_FEEDS_${index}_NAME`]) ?? `Feed ${index}`,
+		url: getFirstEnv(env, [`RSS_DISCORD_FEEDS_${index}_URL`]) ?? "",
+		webhookUrl:
+			getFirstEnv(env, [`RSS_DISCORD_FEEDS_${index}_WEBHOOK_URL`]) ?? "",
 		color: parseEnvNumber(
-			getFirstEnv(env, ["RSS_DISCORD_COLOR", "EMBED_COLOR"]),
+			getFirstEnv(env, [`RSS_DISCORD_FEEDS_${index}_COLOR`]),
 			3447003,
 		),
 		intervalMinutes: parseEnvNumber(
-			getFirstEnv(env, [
-				"RSS_DISCORD_INTERVAL_MINUTES",
-				"INTERVAL_MINUTES",
-			]),
+			getFirstEnv(env, [`RSS_DISCORD_FEEDS_${index}_INTERVAL_MINUTES`]),
 			5,
 		),
-	};
+	}));
+}
+
+/**
+ * Finds indexes used by numbered feed environment variables.
+ */
+function findFeedIndexes(env: ConfigEnv): number[] {
+	const indexes = new Set<number>();
+	const pattern =
+		/^RSS_DISCORD_FEEDS_(\d+)_(?:NAME|URL|WEBHOOK_URL|COLOR|INTERVAL_MINUTES)$/;
+
+	for (const key of Object.keys(env)) {
+		const match = pattern.exec(key);
+		if (match?.[1] !== undefined) {
+			indexes.add(Number(match[1]));
+		}
+	}
+
+	return [...indexes].sort((a, b) => a - b);
 }
 
 /**
@@ -138,43 +110,6 @@ function parseEnvNumber(value: string | undefined, fallback: number): number {
 
 	const parsed = Number(value);
 	return Number.isFinite(parsed) ? parsed : Number.NaN;
-}
-
-/**
- * Converts unknown JSON into the expected application config shape.
- */
-function parseAppConfig(value: unknown): AppConfig {
-	if (!isRecord(value) || !Array.isArray(value.feeds)) {
-		throw new Error("設定バリデーションエラー: feeds は1件以上必要です");
-	}
-
-	return {
-		feeds: value.feeds.map((feed) => parseFeedConfig(feed)),
-	};
-}
-
-/**
- * Converts one unknown feed JSON object into a feed config.
- */
-function parseFeedConfig(value: unknown): FeedConfig {
-	if (!isRecord(value)) {
-		return {
-			name: "",
-			url: "",
-			webhookUrl: "",
-			color: -1,
-			intervalMinutes: 0,
-		};
-	}
-
-	return {
-		name: typeof value.name === "string" ? value.name : "",
-		url: typeof value.url === "string" ? value.url : "",
-		webhookUrl: typeof value.webhookUrl === "string" ? value.webhookUrl : "",
-		color: typeof value.color === "number" ? value.color : -1,
-		intervalMinutes:
-			typeof value.intervalMinutes === "number" ? value.intervalMinutes : 0,
-	};
 }
 
 /**
@@ -235,18 +170,4 @@ function isValidURL(value: string): boolean {
 	} catch {
 		return false;
 	}
-}
-
-/**
- * Narrows unknown values to records.
- */
-function isRecord(value: unknown): value is Record<string, unknown> {
-	return typeof value === "object" && value !== null;
-}
-
-/**
- * Formats unknown errors for nested Japanese messages.
- */
-function formatError(error: unknown): string {
-	return error instanceof Error ? error.message : String(error);
 }

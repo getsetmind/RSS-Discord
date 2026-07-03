@@ -29,7 +29,7 @@ export interface FeedItem {
 }
 
 /**
- * Per-feed runtime settings loaded from config.json.
+ * Per-feed runtime settings loaded from environment variables.
  */
 export interface FeedConfig {
 	/**

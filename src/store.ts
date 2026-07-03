@@ -16,6 +16,11 @@ export class Store {
 	private data: StoreData = {};
 
 	/**
+	 * Queue used to serialize file writes from concurrent feed workers.
+	 */
+	private saveQueue: Promise<void> = Promise.resolve();
+
+	/**
 	 * Creates a sent item store.
 	 */
 	public constructor(
@@ -59,7 +64,16 @@ export class Store {
 		const ids = this.data[feedURL] ?? [];
 		ids.push(itemID);
 		this.data[feedURL] = ids.slice(-this.maxHistory);
-		await this.save();
+		await this.enqueueSave();
+	}
+
+	/**
+	 * Schedules a save after any previous save finishes.
+	 */
+	private async enqueueSave(): Promise<void> {
+		const save = this.saveQueue.then(() => this.save());
+		this.saveQueue = save.catch(() => undefined);
+		await save;
 	}
 
 	/**
