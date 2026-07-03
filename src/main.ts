@@ -28,6 +28,13 @@ const storePath = "data/sent.json";
 const version = packageJSON.version;
 
 /**
+ * Creates the default sent-item store.
+ */
+export function createDefaultStore(): SentStore {
+	return new Store(storePath, maxHistory);
+}
+
+/**
  * Parsed command-line arguments.
  */
 export interface CliArgs {
@@ -116,7 +123,7 @@ export interface AppLogger {
  */
 const defaultDependencies: AppDependencies = {
 	loadConfig,
-	createStore: () => new Store(storePath, maxHistory),
+	createStore: createDefaultStore,
 	fetchFeed,
 	buildEmbed,
 	sendWebhook,

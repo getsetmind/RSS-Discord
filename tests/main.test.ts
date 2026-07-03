@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
 	type AppDependencies,
+	createDefaultStore,
 	main,
 	parseArgs,
 	processFeed,
@@ -120,6 +121,12 @@ describe("parseArgs", () => {
 		expect(parseArgs(["config.json", "--unknown"])).toEqual({
 			runOnce: false,
 		});
+	});
+});
+
+describe("createDefaultStore", () => {
+	test("creates a store using the default data path", () => {
+		expect(createDefaultStore()).toHaveProperty("load");
 	});
 });
 

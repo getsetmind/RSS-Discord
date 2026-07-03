@@ -120,6 +120,12 @@ describe("sendWebhook", () => {
 		});
 	});
 
+	test("restores webhook dependencies", () => {
+		const restore = setWebhookDependencies({});
+
+		expect(restore()).toBeUndefined();
+	});
+
 	test("uses GitHub identity for GitHub feeds", async () => {
 		let payload: unknown;
 		restoreWebhookDependencies = setWebhookDependencies({
@@ -228,6 +234,26 @@ describe("sendWebhook", () => {
 				"not a url",
 			),
 		).rejects.toThrow("Webhook送信失敗: network down");
+	});
+
+	test("falls back to RSS identity for invalid feed URLs", async () => {
+		let payload: unknown;
+		restoreWebhookDependencies = setWebhookDependencies({
+			fetch: async (_url, init) => {
+				payload = JSON.parse(String(init?.body));
+				return new Response("", { status: 204 });
+			},
+		});
+
+		await sendWebhook(
+			feedConfig.webhookUrl,
+			buildEmbed(createFeedItem(), feedConfig),
+			"not a url",
+		);
+
+		expect(payload).toMatchObject({
+			username: "RSS",
+		});
 	});
 
 	test("aborts an in-flight webhook when the caller signal aborts", async () => {

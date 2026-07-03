@@ -177,7 +177,7 @@ async function postWebhook(
 	signal?: AbortSignal,
 ): Promise<{ status: number; body: string }> {
 	const controller = new AbortController();
-	const timeout = setTimeout(() => controller.abort(), 30000);
+	const timeout = setTimeout(controller.abort.bind(controller), 30000);
 	const abort = (): void => controller.abort();
 	signal?.addEventListener("abort", abort, { once: true });
 
