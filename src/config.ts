@@ -1,27 +1,143 @@
-import { readFile } from "node:fs/promises";
 import type { AppConfig, FeedConfig } from "./types.js";
 
 /**
- * Loads and validates the application configuration file.
+ * Environment variables used for configuration.
  */
-export async function loadConfig(path: string): Promise<AppConfig> {
-	let raw: string;
-	try {
-		raw = await readFile(path, "utf8");
-	} catch (error) {
-		throw new Error(`設定ファイルの読み込みに失敗: ${formatError(error)}`);
+type ConfigEnv = Record<string, string | undefined>;
+
+/**
+ * Loaded application configuration with source metadata.
+ */
+export interface LoadedConfig {
+	/**
+	 * Validated application configuration.
+	 */
+	config: AppConfig;
+	/**
+	 * Human-readable source used in logs.
+	 */
+	source: string;
+}
+
+/**
+ * Loads configuration from environment variables.
+ */
+export function loadConfig(
+	env: ConfigEnv = process.env,
+): LoadedConfig {
+	const envConfig = loadConfigFromEnv(env);
+	if (envConfig !== undefined) {
+		return envConfig;
 	}
 
+	throw new Error(
+		"設定が見つかりません。RSS_DISCORD_CONFIG_JSON、RSS_DISCORD_CONFIG_BASE64、または単一フィード用の RSS_DISCORD_FEED_URL と RSS_DISCORD_WEBHOOK_URL を設定してください",
+	);
+}
+
+/**
+ * Loads configuration from supported environment variables.
+ */
+function loadConfigFromEnv(env: ConfigEnv): LoadedConfig | undefined {
+	const json = getFirstEnv(env, [
+		"RSS_DISCORD_CONFIG_JSON",
+		"RSS_DISCORD_FEEDS_JSON",
+	]);
+	if (json !== undefined) {
+		const config = parseEnvJSON(json, "RSS_DISCORD_CONFIG_JSON");
+		return { config, source: "environment:RSS_DISCORD_CONFIG_JSON" };
+	}
+
+	const base64 = getFirstEnv(env, ["RSS_DISCORD_CONFIG_BASE64"]);
+	if (base64 !== undefined) {
+		const decoded = Buffer.from(base64, "base64").toString("utf8");
+		const config = parseEnvJSON(decoded, "RSS_DISCORD_CONFIG_BASE64");
+		return { config, source: "environment:RSS_DISCORD_CONFIG_BASE64" };
+	}
+
+	const singleFeed = parseSingleFeedEnv(env);
+	if (singleFeed !== undefined) {
+		const config = { feeds: [singleFeed] };
+		validateConfig(config);
+		return { config, source: "environment:single-feed" };
+	}
+
+	return undefined;
+}
+
+/**
+ * Parses a JSON environment variable into an application config.
+ */
+function parseEnvJSON(raw: string, source: string): AppConfig {
 	let parsed: unknown;
 	try {
 		parsed = JSON.parse(raw);
 	} catch (error) {
-		throw new Error(`設定ファイルのパースに失敗: ${formatError(error)}`);
+		throw new Error(`${source} のJSONパースに失敗: ${formatError(error)}`);
 	}
 
-	const config = parseAppConfig(parsed);
+	const config = Array.isArray(parsed)
+		? { feeds: parsed.map((feed) => parseFeedConfig(feed)) }
+		: parseAppConfig(parsed);
 	validateConfig(config);
 	return config;
+}
+
+/**
+ * Parses simple single-feed environment variables.
+ */
+function parseSingleFeedEnv(env: ConfigEnv): FeedConfig | undefined {
+	const url = getFirstEnv(env, ["RSS_DISCORD_FEED_URL", "FEED_URL"]);
+	const webhookUrl = getFirstEnv(env, [
+		"RSS_DISCORD_WEBHOOK_URL",
+		"DISCORD_WEBHOOK_URL",
+		"WEBHOOK_URL",
+	]);
+	if (url === undefined && webhookUrl === undefined) {
+		return undefined;
+	}
+
+	return {
+		name: getFirstEnv(env, ["RSS_DISCORD_FEED_NAME", "FEED_NAME"]) ?? "RSS",
+		url: url ?? "",
+		webhookUrl: webhookUrl ?? "",
+		color: parseEnvNumber(
+			getFirstEnv(env, ["RSS_DISCORD_COLOR", "EMBED_COLOR"]),
+			3447003,
+		),
+		intervalMinutes: parseEnvNumber(
+			getFirstEnv(env, [
+				"RSS_DISCORD_INTERVAL_MINUTES",
+				"INTERVAL_MINUTES",
+			]),
+			5,
+		),
+	};
+}
+
+/**
+ * Finds the first non-empty environment variable from a list.
+ */
+function getFirstEnv(env: ConfigEnv, names: string[]): string | undefined {
+	for (const name of names) {
+		const value = env[name]?.trim();
+		if (value !== undefined && value !== "") {
+			return value;
+		}
+	}
+	return undefined;
+}
+
+/**
+ * Parses a numeric environment variable with a fallback.
+ */
+function parseEnvNumber(value: string | undefined, fallback: number): number {
+	if (value === undefined) {
+		return fallback;
+	}
+
+	const parsed = Number(value);
+	return Number.isFinite(parsed) ? parsed : Number.NaN;
 }
 
 /**

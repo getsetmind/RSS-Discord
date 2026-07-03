@@ -1,12 +1,7 @@
 {
 	"name": "rss-discord",
 	"version": "1.0.0",
-	"description": "A lightweight CLI tool that polls RSS/Atom feeds and sends new entries to Discord via Webhooks.",
 	"type": "module",
-	"main": "src/main.ts",
-	"bin": {
-		"rss-discord": "src/main.ts"
-	},
 	"scripts": {
 		"dev": "bun src/main.ts",
 		"start": "bun src/main.ts",

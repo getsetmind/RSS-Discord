@@ -33,10 +33,6 @@ const version = packageJSON.version;
  */
 interface CliArgs {
 	/**
-	 * Config file path.
-	 */
-	configPath: string;
-	/**
 	 * Whether to process each feed once and exit.
 	 */
 	runOnce: boolean;
@@ -56,18 +52,15 @@ function printBanner(): void {
  * Parses CLI arguments.
  */
 function parseArgs(args: string[]): CliArgs {
-	let configPath = "config.json";
 	let runOnce = false;
 
 	for (const arg of args) {
 		if (arg === "--once") {
 			runOnce = true;
-		} else if (!arg.startsWith("--")) {
-			configPath = arg;
 		}
 	}
 
-	return { configPath, runOnce };
+	return { runOnce };
 }
 
 /**
@@ -76,20 +69,20 @@ function parseArgs(args: string[]): CliArgs {
 async function main(): Promise<void> {
 	printBanner();
 	const args = parseArgs(process.argv.slice(2));
-	await run(args.configPath, args.runOnce);
+	await run(args.runOnce);
 }
 
 /**
  * Loads config and runs either one-shot processing or polling.
  */
-async function run(configPath: string, runOnce: boolean): Promise<void> {
-	const config = await loadConfig(configPath);
+async function run(runOnce: boolean): Promise<void> {
+	const { config, source } = loadConfig();
 	const store = new Store(storePath, maxHistory);
 	await store.load();
 
 	logger.info("設定読み込み完了", {
 		feeds: config.feeds.length,
-		config: configPath,
+		config: source,
 	});
 
 	const controller = new AbortController();
