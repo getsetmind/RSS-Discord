@@ -19,10 +19,9 @@ const feedConfigSchema = z.object({
 			discordWebhookPrefix,
 			`webhookUrl は ${discordWebhookPrefix} で始まる必要があります`,
 		),
-	color: z.number().finite().int().min(0, "color は0以上である必要があります"),
+	color: z.int().min(0, "color は0以上である必要があります"),
 	intervalMinutes: z
 		.number()
-		.finite()
 		.positive("intervalMinutes は正の数である必要があります"),
 });
 
