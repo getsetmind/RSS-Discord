@@ -11,7 +11,6 @@ bun run typecheck                     # TypeScript型チェック
 
 # ビルド
 bun run build                         # dist/にバンドル
-make clean                            # ビルド成果物を削除
 ```
 
 # Architecture
@@ -22,7 +21,7 @@ RSS/Atomフィードをポーリングし、Discord Webhookで新着を通知す
 src/
 ├── main.ts                # エントリーポイント、シグナル処理、ポーリング
 ├── config.ts              # JSON読み込み、バリデーション
-├── feed.ts                # FeedItem正規化、FetchFeed (rss-parser使用)
+├── feed.ts                # FeedItem正規化、fetchFeed (rss-parser使用)
 ├── discord.ts             # Embed構築、Webhook送信 (429リトライ含む)
 ├── store.ts               # 送信済みID永続化
 ├── logger.ts              # コンソールANSI色付き + 日別JSONログ

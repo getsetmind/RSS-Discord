@@ -15,17 +15,7 @@
 		"lint": "biome check .",
 		"format": "biome check --write --unsafe ."
 	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/getsetmind/RSS-Discord.git"
-	},
-	"keywords": [],
-	"author": "",
 	"license": "MIT",
-	"bugs": {
-		"url": "https://github.com/getsetmind/RSS-Discord/issues"
-	},
-	"homepage": "https://github.com/getsetmind/RSS-Discord#readme",
 	"dependencies": {
 		"rss-parser": "^3.13.0"
 	},

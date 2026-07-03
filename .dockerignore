@@ -1,34 +1,48 @@
-# VCS & CI
+# VCS and local metadata
 .git
 .github
 .gitignore
+.dockerignore
 
-# Claude Code
+# Agent/editor metadata
 .claude
 CLAUDE.md
 AGENTS.MD
-
-# Build & IDE
-out/
-dist/
-node_modules/
-package-lock.json
 .idea/
 .vscode/
-Makefile
+*.swp
+*.swo
 
-# Runtime data & secrets
+# Dependencies and build output
+node_modules/
+dist/
+out/
+*.tsbuildinfo
+
+# Runtime data and secrets
 data/
 logs/
+*.log
 config.json
 .env
 .env.*
 
-# Docs
-LICENSE
-*.md
-!README.md
+# Package-manager files from other runtimes
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
-# Docker
-Dockerfile
-.dockerignore
+# Tool caches
+.cache/
+.turbo/
+.vite/
+.bun/
+
+# Docs and repo-only files
+*.md
+LICENSE
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
