@@ -12,7 +12,8 @@
 	},
 	"license": "MIT",
 	"dependencies": {
-		"rss-parser": "^3.13.0"
+		"rss-parser": "^3.13.0",
+		"zod": "^4.4.3"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.5.2",

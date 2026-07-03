@@ -1,4 +1,37 @@
+import { z } from "zod";
 import type { AppConfig, FeedConfig } from "./types.js";
+
+/**
+ * Discord webhook URL prefix accepted by Discord.
+ */
+const discordWebhookPrefix = "https://discord.com/api/webhooks/";
+
+/**
+ * Runtime schema for one feed configuration.
+ */
+const feedConfigSchema = z.object({
+	name: z.string().trim().min(1, "name は空にできません"),
+	url: z.httpUrl("url が不正です"),
+	webhookUrl: z
+		.string()
+		.trim()
+		.startsWith(
+			discordWebhookPrefix,
+			`webhookUrl は ${discordWebhookPrefix} で始まる必要があります`,
+		),
+	color: z.number().finite().int().min(0, "color は0以上である必要があります"),
+	intervalMinutes: z
+		.number()
+		.finite()
+		.positive("intervalMinutes は正の数である必要があります"),
+});
+
+/**
+ * Runtime schema for application configuration.
+ */
+const appConfigSchema = z.object({
+	feeds: z.array(feedConfigSchema).min(1, "feeds は1件以上必要です"),
+});
 
 /**
  * Environment variables used for configuration.
@@ -39,8 +72,7 @@ export function loadConfig(env: ConfigEnv = process.env): LoadedConfig {
 function loadConfigFromEnv(env: ConfigEnv): LoadedConfig | undefined {
 	const indexedFeeds = parseIndexedFeedEnv(env);
 	if (indexedFeeds.length > 0) {
-		const config = { feeds: indexedFeeds };
-		validateConfig(config);
+		const config = validateConfig({ feeds: indexedFeeds });
 		return { config, source: "environment:indexed-feeds" };
 	}
 
@@ -113,61 +145,26 @@ function parseEnvNumber(value: string | undefined, fallback: number): number {
 }
 
 /**
- * Validates all feed settings and throws a Japanese error message on failure.
+ * Validates all feed settings and returns a typed app config.
  */
-function validateConfig(config: AppConfig): void {
-	if (config.feeds.length === 0) {
-		throw new Error("設定バリデーションエラー: feeds は1件以上必要です");
+function validateConfig(config: AppConfig): AppConfig {
+	const result = appConfigSchema.safeParse(config);
+	if (!result.success) {
+		throw new Error(
+			`設定バリデーションエラー: ${formatZodError(result.error)}`,
+		);
 	}
-
-	config.feeds.forEach((feed, index) => {
-		validateFeedConfig(feed, index);
-	});
+	return result.data;
 }
 
 /**
- * Validates one feed definition.
+ * Formats Zod issues using config-like paths.
  */
-function validateFeedConfig(feed: FeedConfig, index: number): void {
-	if (feed.name.trim() === "") {
-		throw new Error(
-			`設定バリデーションエラー: feeds[${index}].name は空にできません`,
-		);
-	}
-
-	if (!isValidURL(feed.url)) {
-		throw new Error(
-			`設定バリデーションエラー: feeds[${index}].url が不正です: ${feed.url}`,
-		);
-	}
-
-	if (!feed.webhookUrl.startsWith("https://discord.com/api/webhooks/")) {
-		throw new Error(
-			`設定バリデーションエラー: feeds[${index}].webhookUrl は https://discord.com/api/webhooks/ で始まる必要があります`,
-		);
-	}
-
-	if (feed.color < 0) {
-		throw new Error(
-			`設定バリデーションエラー: feeds[${index}].color は0以上である必要があります`,
-		);
-	}
-
-	if (feed.intervalMinutes <= 0) {
-		throw new Error(
-			`設定バリデーションエラー: feeds[${index}].intervalMinutes は正の数である必要があります`,
-		);
-	}
-}
-
-/**
- * Checks whether a string is an absolute URL.
- */
-function isValidURL(value: string): boolean {
-	try {
-		const parsed = new URL(value);
-		return parsed.protocol === "http:" || parsed.protocol === "https:";
-	} catch {
-		return false;
-	}
+function formatZodError(error: z.ZodError): string {
+	return error.issues
+		.map((issue) => {
+			const path = issue.path.length > 0 ? issue.path.join(".") : "config";
+			return `${path}: ${issue.message}`;
+		})
+		.join("; ");
 }
