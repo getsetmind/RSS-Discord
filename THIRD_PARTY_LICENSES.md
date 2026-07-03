@@ -5,6 +5,7 @@ Development-only tools such as Biome and TypeScript are not included here.
 
 | Name | Version | License | Source |
 |------|---------|---------|--------|
+| zod | 4.4.3 | MIT | https://github.com/colinhacks/zod |
 | rss-parser | 3.13.0 | MIT | https://github.com/bobby-brennan/rss-parser |
 | entities | 2.2.0 | BSD-2-Clause | https://github.com/fb55/entities |
 | xml2js | 0.5.0 | MIT | https://github.com/Leonidas-from-XIV/node-xml2js |

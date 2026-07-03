@@ -2,6 +2,45 @@ import { setTimeout as delay } from "node:timers/promises";
 import type { Embed, FeedConfig, FeedItem } from "./types.js";
 
 /**
+ * Fetch implementation used by webhook delivery.
+ */
+type FetchFunction = (
+	input: string | URL | Request,
+	init?: RequestInit,
+) => Promise<Response>;
+
+/**
+ * Delay implementation used by webhook retry handling.
+ */
+type DelayFunction = (
+	ms?: number,
+	value?: unknown,
+	options?: Parameters<typeof delay>[2],
+) => Promise<unknown>;
+
+/**
+ * Replaceable dependencies for webhook delivery.
+ */
+interface WebhookDependencies {
+	/**
+	 * Fetch implementation.
+	 */
+	fetch: FetchFunction;
+	/**
+	 * Delay implementation.
+	 */
+	delay: DelayFunction;
+}
+
+/**
+ * Current dependencies for webhook delivery.
+ */
+const webhookDependencies: WebhookDependencies = {
+	fetch,
+	delay,
+};
+
+/**
  * Maximum Discord embed title length.
  */
 const titleMax = 256;
@@ -111,7 +150,7 @@ export async function sendWebhook(
 		const rateLimit = parseRateLimit(first.body);
 		const waitMs = Math.max(rateLimit.retry_after ?? 1, 0) * 1000;
 		console.warn(`Rate limited retry_after_ms=${Math.trunc(waitMs)}`);
-		await delay(waitMs, undefined, { signal });
+		await webhookDependencies.delay(waitMs, undefined, { signal });
 
 		const retry = await postWebhook(webhookURL, payload, signal);
 		if (!isSuccessStatus(retry.status)) {
@@ -138,12 +177,12 @@ async function postWebhook(
 	signal?: AbortSignal,
 ): Promise<{ status: number; body: string }> {
 	const controller = new AbortController();
-	const timeout = setTimeout(() => controller.abort(), 30000);
+	const timeout = setTimeout(controller.abort.bind(controller), 30000);
 	const abort = (): void => controller.abort();
 	signal?.addEventListener("abort", abort, { once: true });
 
 	try {
-		const response = await fetch(webhookURL, {
+		const response = await webhookDependencies.fetch(webhookURL, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify(payload),
@@ -157,6 +196,19 @@ async function postWebhook(
 		clearTimeout(timeout);
 		signal?.removeEventListener("abort", abort);
 	}
+}
+
+/**
+ * Overrides webhook dependencies for tests.
+ */
+export function setWebhookDependencies(
+	overrides: Partial<WebhookDependencies>,
+): () => void {
+	const previous = { ...webhookDependencies };
+	Object.assign(webhookDependencies, overrides);
+	return () => {
+		Object.assign(webhookDependencies, previous);
+	};
 }
 
 /**

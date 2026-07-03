@@ -7,7 +7,7 @@ A lightweight CLI tool that polls RSS/Atom feeds and sends new entries to Discor
 ## Features
 
 - Send new blog posts, release notes, and other feed updates to Discord automatically
-- Watch multiple feeds at different intervals from one small config file
+- Configure feeds with environment variables for Docker and game-server panels
 - Avoid duplicate notifications by remembering already-sent entries
 - Keep Discord messages easy to scan with titles, links, timestamps, and feed names
 - Recover from Discord rate limits with an automatic retry
@@ -25,8 +25,14 @@ A lightweight CLI tool that polls RSS/Atom feeds and sends new entries to Discor
 
 ```bash
 bun install
-cp config.example.json config.json
-# Edit config.json with your feed URLs and Webhook URLs
+cp .env.example .env
+# Edit .env with your feed URL and Webhook URL
+```
+
+If an old `config.json` exists and `.env` does not, the first startup migrates it automatically. You can also run the same migration manually:
+
+```bash
+bun run migrate:config
 ```
 
 ### Run
@@ -43,6 +49,7 @@ bun run dev --once
 
 ```bash
 bun run build       # Bundle into dist/
+bun test            # Unit tests
 bun run lint        # Biome lint
 bun run typecheck   # TypeScript typecheck
 ```
@@ -51,7 +58,7 @@ bun run typecheck   # TypeScript typecheck
 
 ```bash
 docker build -t rss-discord .
-docker run -v ./config.json:/app/config.json \
+docker run --env-file .env \
            -v ./data:/app/data \
            -v ./logs:/app/logs \
            rss-discord
@@ -59,29 +66,29 @@ docker run -v ./config.json:/app/config.json \
 
 ## Configuration
 
-Create `config.json` based on the example:
+Configure feeds with numbered environment variables. Add more feeds by increasing the number: `RSS_DISCORD_FEEDS_1_*`, `RSS_DISCORD_FEEDS_2_*`, ..., `RSS_DISCORD_FEEDS_100_*`.
 
-```json
-{
-  "feeds": [
-    {
-      "name": "Example Blog",
-      "url": "https://example.com/feed.xml",
-      "webhookUrl": "https://discord.com/api/webhooks/YOUR_ID/YOUR_TOKEN",
-      "color": 3447003,
-      "intervalMinutes": 5
-    }
-  ]
-}
+```env
+RSS_DISCORD_FEEDS_1_NAME=Example Blog
+RSS_DISCORD_FEEDS_1_URL=https://example.com/feed.xml
+RSS_DISCORD_FEEDS_1_WEBHOOK_URL=https://discord.com/api/webhooks/YOUR_ID/YOUR_TOKEN
+RSS_DISCORD_FEEDS_1_COLOR=3447003
+RSS_DISCORD_FEEDS_1_INTERVAL_MINUTES=5
+
+RSS_DISCORD_FEEDS_2_NAME=GitHub Releases
+RSS_DISCORD_FEEDS_2_URL=https://github.com/oven-sh/bun/releases.atom
+RSS_DISCORD_FEEDS_2_WEBHOOK_URL=https://discord.com/api/webhooks/YOUR_ID/YOUR_TOKEN
+RSS_DISCORD_FEEDS_2_COLOR=15105570
+RSS_DISCORD_FEEDS_2_INTERVAL_MINUTES=10
 ```
 
 | Field | Description |
 |-------|-------------|
-| `name` | Display name for the feed |
-| `url` | RSS/Atom feed URL |
-| `webhookUrl` | Discord Webhook URL |
-| `color` | Embed color (decimal) |
-| `intervalMinutes` | Polling interval in minutes |
+| `RSS_DISCORD_FEEDS_<N>_NAME` | Display name for the feed |
+| `RSS_DISCORD_FEEDS_<N>_URL` | RSS/Atom feed URL |
+| `RSS_DISCORD_FEEDS_<N>_WEBHOOK_URL` | Discord Webhook URL |
+| `RSS_DISCORD_FEEDS_<N>_COLOR` | Embed color (decimal, default: `3447003`) |
+| `RSS_DISCORD_FEEDS_<N>_INTERVAL_MINUTES` | Polling interval in minutes (default: `5`) |
 
 ## License
 

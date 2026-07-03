@@ -1,23 +1,21 @@
 {
 	"name": "rss-discord",
 	"version": "1.0.0",
-	"description": "A lightweight CLI tool that polls RSS/Atom feeds and sends new entries to Discord via Webhooks.",
 	"type": "module",
-	"main": "src/main.ts",
-	"bin": {
-		"rss-discord": "src/main.ts"
-	},
 	"scripts": {
-		"dev": "bun src/main.ts",
-		"start": "bun src/main.ts",
-		"build": "bun build src/main.ts --target=bun --outdir=dist",
+		"dev": "bun src/cli.ts",
+		"start": "bun src/cli.ts",
+		"build": "bun build src/cli.ts --target=bun --outdir=dist",
+		"migrate:config": "bun scripts/migrate-config-json-to-env.ts",
 		"typecheck": "tsc",
 		"lint": "biome check .",
-		"format": "biome check --write --unsafe ."
+		"format": "biome check --write --unsafe .",
+		"test": "bun test --coverage"
 	},
 	"license": "MIT",
 	"dependencies": {
-		"rss-parser": "^3.13.0"
+		"rss-parser": "^3.13.0",
+		"zod": "^4.4.3"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.5.2",

@@ -7,7 +7,7 @@ RSS/Atom フィードをポーリングし、新着エントリを Discord Webho
 ## 特徴
 
 - ブログ記事、リリースノート、ニュースなどの新着を Discord に自動通知
-- 1つの設定ファイルで複数フィードを管理し、フィードごとに通知間隔を指定
+- Docker やゲームサーバーパネルで扱いやすい環境変数で設定
 - 送信済みエントリを記録して、同じ投稿の重複通知を防止
 - タイトル、リンク、日時、フィード名つきの見やすい Discord メッセージを送信
 - Discord のレートリミット時は自動で待ってリトライ
@@ -25,8 +25,14 @@ RSS/Atom フィードをポーリングし、新着エントリを Discord Webho
 
 ```bash
 bun install
-cp config.example.json config.json
-# config.json にフィード URL と Webhook URL を設定
+cp .env.example .env
+# .env にフィード URL と Webhook URL を設定
+```
+
+旧 `config.json` が残っていて `.env` がない場合は、初回起動時に自動変換されます。同じ変換を手動で実行することもできます:
+
+```bash
+bun run migrate:config
 ```
 
 ### 実行
@@ -43,6 +49,7 @@ bun run dev --once
 
 ```bash
 bun run build       # dist/ にバンドル
+bun test            # 単体テスト
 bun run lint        # Biome lint
 bun run typecheck   # 型チェック
 ```
@@ -51,7 +58,7 @@ bun run typecheck   # 型チェック
 
 ```bash
 docker build -t rss-discord .
-docker run -v ./config.json:/app/config.json \
+docker run --env-file .env \
            -v ./data:/app/data \
            -v ./logs:/app/logs \
            rss-discord
@@ -59,29 +66,29 @@ docker run -v ./config.json:/app/config.json \
 
 ## 設定
 
-`config.example.json` を元に `config.json` を作成:
+フィードは番号付き環境変数で設定します。`RSS_DISCORD_FEEDS_1_*`, `RSS_DISCORD_FEEDS_2_*`, ..., `RSS_DISCORD_FEEDS_100_*` のように番号を増やせます。
 
-```json
-{
-  "feeds": [
-    {
-      "name": "Example Blog",
-      "url": "https://example.com/feed.xml",
-      "webhookUrl": "https://discord.com/api/webhooks/YOUR_ID/YOUR_TOKEN",
-      "color": 3447003,
-      "intervalMinutes": 5
-    }
-  ]
-}
+```env
+RSS_DISCORD_FEEDS_1_NAME=Example Blog
+RSS_DISCORD_FEEDS_1_URL=https://example.com/feed.xml
+RSS_DISCORD_FEEDS_1_WEBHOOK_URL=https://discord.com/api/webhooks/YOUR_ID/YOUR_TOKEN
+RSS_DISCORD_FEEDS_1_COLOR=3447003
+RSS_DISCORD_FEEDS_1_INTERVAL_MINUTES=5
+
+RSS_DISCORD_FEEDS_2_NAME=GitHub Releases
+RSS_DISCORD_FEEDS_2_URL=https://github.com/oven-sh/bun/releases.atom
+RSS_DISCORD_FEEDS_2_WEBHOOK_URL=https://discord.com/api/webhooks/YOUR_ID/YOUR_TOKEN
+RSS_DISCORD_FEEDS_2_COLOR=15105570
+RSS_DISCORD_FEEDS_2_INTERVAL_MINUTES=10
 ```
 
 | フィールド | 説明 |
 |------------|------|
-| `name` | フィードの表示名 |
-| `url` | RSS/Atom フィード URL |
-| `webhookUrl` | Discord Webhook URL |
-| `color` | Embed の色 (10進数) |
-| `intervalMinutes` | ポーリング間隔 (分) |
+| `RSS_DISCORD_FEEDS_<N>_NAME` | フィードの表示名 |
+| `RSS_DISCORD_FEEDS_<N>_URL` | RSS/Atom フィード URL |
+| `RSS_DISCORD_FEEDS_<N>_WEBHOOK_URL` | Discord Webhook URL |
+| `RSS_DISCORD_FEEDS_<N>_COLOR` | Embed の色 (10進数、既定値: `3447003`) |
+| `RSS_DISCORD_FEEDS_<N>_INTERVAL_MINUTES` | ポーリング間隔 (分、既定値: `5`) |
 
 ## ライセンス
 

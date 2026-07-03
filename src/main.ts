@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import { setTimeout as delay } from "node:timers/promises";
 import packageJSON from "../package.json" with { type: "json" };
 import { loadConfig } from "./config.js";
@@ -29,18 +28,113 @@ const storePath = "data/sent.json";
 const version = packageJSON.version;
 
 /**
+ * Creates the default sent-item store.
+ */
+export function createDefaultStore(): SentStore {
+	return new Store(storePath, maxHistory);
+}
+
+/**
  * Parsed command-line arguments.
  */
-interface CliArgs {
-	/**
-	 * Config file path.
-	 */
-	configPath: string;
+export interface CliArgs {
 	/**
 	 * Whether to process each feed once and exit.
 	 */
 	runOnce: boolean;
 }
+
+/**
+ * Minimal sent-item store contract used by the polling workflow.
+ */
+export interface SentStore {
+	/**
+	 * Loads persisted sent item IDs.
+	 */
+	load(): Promise<void>;
+	/**
+	 * Checks whether an item has already been sent.
+	 */
+	hasSent(feedURL: string, itemID: string): boolean;
+	/**
+	 * Marks an item as sent.
+	 */
+	markSent(feedURL: string, itemID: string): Promise<void>;
+}
+
+/**
+ * Dependencies used by the CLI workflow.
+ */
+export interface AppDependencies {
+	/**
+	 * Loads application configuration.
+	 */
+	loadConfig: typeof loadConfig;
+	/**
+	 * Creates the sent-item store.
+	 */
+	createStore: () => SentStore;
+	/**
+	 * Fetches a feed URL.
+	 */
+	fetchFeed: typeof fetchFeed;
+	/**
+	 * Builds a Discord embed.
+	 */
+	buildEmbed: typeof buildEmbed;
+	/**
+	 * Sends a Discord webhook.
+	 */
+	sendWebhook: typeof sendWebhook;
+	/**
+	 * Delay implementation.
+	 */
+	delay: (
+		ms: number,
+		value?: undefined,
+		options?: { signal?: AbortSignal },
+	) => Promise<unknown>;
+	/**
+	 * Logger implementation.
+	 */
+	logger: AppLogger;
+}
+
+/**
+ * Logger contract used by the CLI workflow.
+ */
+export interface AppLogger {
+	/**
+	 * Writes an info log.
+	 */
+	info(message: string, metadata?: Record<string, unknown>): void;
+	/**
+	 * Writes a warning log.
+	 */
+	warn(message: string, metadata?: Record<string, unknown>): void;
+	/**
+	 * Writes an error log.
+	 */
+	error(message: string, metadata?: Record<string, unknown>): void;
+}
+
+/**
+ * Result of processing one feed.
+ */
+export type ProcessFeedResult = "sent" | "no-new-items" | "failed" | "aborted";
+
+/**
+ * Default runtime dependencies.
+ */
+const defaultDependencies: AppDependencies = {
+	loadConfig,
+	createStore: createDefaultStore,
+	fetchFeed,
+	buildEmbed,
+	sendWebhook,
+	delay,
+	logger,
+};
 
 /**
  * Prints the application banner.
@@ -55,41 +149,44 @@ function printBanner(): void {
 /**
  * Parses CLI arguments.
  */
-function parseArgs(args: string[]): CliArgs {
-	let configPath = "config.json";
+export function parseArgs(args: string[]): CliArgs {
 	let runOnce = false;
 
 	for (const arg of args) {
 		if (arg === "--once") {
 			runOnce = true;
-		} else if (!arg.startsWith("--")) {
-			configPath = arg;
 		}
 	}
 
-	return { configPath, runOnce };
+	return { runOnce };
 }
 
 /**
  * Runs the CLI.
  */
-async function main(): Promise<void> {
+export async function main(
+	args = process.argv.slice(2),
+	dependencies = defaultDependencies,
+): Promise<void> {
 	printBanner();
-	const args = parseArgs(process.argv.slice(2));
-	await run(args.configPath, args.runOnce);
+	const parsedArgs = parseArgs(args);
+	await run(parsedArgs.runOnce, dependencies);
 }
 
 /**
  * Loads config and runs either one-shot processing or polling.
  */
-async function run(configPath: string, runOnce: boolean): Promise<void> {
-	const config = await loadConfig(configPath);
-	const store = new Store(storePath, maxHistory);
+export async function run(
+	runOnce: boolean,
+	dependencies = defaultDependencies,
+): Promise<void> {
+	const { config, source } = dependencies.loadConfig();
+	const store = dependencies.createStore();
 	await store.load();
 
-	logger.info("設定読み込み完了", {
+	dependencies.logger.info("設定読み込み完了", {
 		feeds: config.feeds.length,
-		config: configPath,
+		config: source,
 	});
 
 	const controller = new AbortController();
@@ -97,109 +194,122 @@ async function run(configPath: string, runOnce: boolean): Promise<void> {
 	process.once("SIGTERM", () => controller.abort());
 
 	if (runOnce) {
-		await Promise.all(
+		const results = await Promise.all(
 			config.feeds.map((feedConfig) =>
-				processFeed(feedConfig, store, controller.signal),
+				processFeed(feedConfig, store, controller.signal, dependencies),
 			),
 		);
-		logger.info("Done.");
+		if (results.includes("failed")) {
+			dependencies.logger.warn("一部フィードの処理に失敗しました");
+			return;
+		}
+		dependencies.logger.info("Done.");
 		return;
 	}
 
-	logger.info("ポーリング開始 (Ctrl+C で停止)");
+	dependencies.logger.info("ポーリング開始 (Ctrl+C で停止)");
 	await Promise.all(
 		config.feeds.map((feedConfig) =>
-			startPolling(feedConfig, store, controller.signal),
+			startPolling(feedConfig, store, controller.signal, dependencies),
 		),
 	);
-	logger.info("シャットダウン完了");
+	dependencies.logger.info("シャットダウン完了");
 }
 
 /**
  * Starts the polling loop for a single feed.
  */
-async function startPolling(
+export async function startPolling(
 	feedConfig: FeedConfig,
-	store: Store,
+	store: SentStore,
 	signal: AbortSignal,
+	dependencies = defaultDependencies,
 ): Promise<void> {
 	const intervalMs = feedConfig.intervalMinutes * 60 * 1000;
-	logger.info("ポーリング開始", {
+	dependencies.logger.info("ポーリング開始", {
 		feed: feedConfig.name,
 		interval: feedConfig.intervalMinutes,
 	});
 
-	await processFeed(feedConfig, store, signal);
+	await processFeed(feedConfig, store, signal, dependencies);
 
 	while (!signal.aborted) {
 		try {
-			await delay(intervalMs, undefined, { signal });
+			await dependencies.delay(intervalMs, undefined, { signal });
 		} catch {
 			return;
 		}
-		await processFeed(feedConfig, store, signal);
+		await processFeed(feedConfig, store, signal, dependencies);
 	}
 }
 
 /**
  * Fetches and sends all new items for a feed.
  */
-async function processFeed(
+export async function processFeed(
 	feedConfig: FeedConfig,
-	store: Store,
+	store: SentStore,
 	signal: AbortSignal,
-): Promise<void> {
-	logger.info("Fetching...", { feed: feedConfig.name });
+	dependencies = defaultDependencies,
+): Promise<ProcessFeedResult> {
+	dependencies.logger.info("Fetching...", { feed: feedConfig.name });
 
 	let items: FeedItem[];
 	try {
-		items = await fetchFeed(feedConfig.url);
+		items = await dependencies.fetchFeed(feedConfig.url);
 	} catch (error) {
-		logger.error("フィード取得失敗", { feed: feedConfig.name, error });
-		return;
+		dependencies.logger.error("フィード取得失敗", {
+			feed: feedConfig.name,
+			error,
+		});
+		return "failed";
 	}
 
 	const newItems = items.filter(
 		(item) => item.id !== "" && !store.hasSent(feedConfig.url, item.id),
 	);
 	if (newItems.length === 0) {
-		logger.info("No new items.", { feed: feedConfig.name });
-		return;
+		dependencies.logger.info("No new items.", { feed: feedConfig.name });
+		return "no-new-items";
 	}
 
-	logger.info("新着アイテム検出", {
+	dependencies.logger.info("新着アイテム検出", {
 		feed: feedConfig.name,
 		count: newItems.length,
 	});
 
 	for (const item of newItems.reverse()) {
 		if (signal.aborted) {
-			return;
+			return "aborted";
 		}
 
-		const embed = buildEmbed(item, feedConfig);
+		const embed = dependencies.buildEmbed(item, feedConfig);
 		try {
-			await sendWebhook(feedConfig.webhookUrl, embed, feedConfig.url, signal);
+			await dependencies.sendWebhook(
+				feedConfig.webhookUrl,
+				embed,
+				feedConfig.url,
+				signal,
+			);
 			await store.markSent(feedConfig.url, item.id);
-			logger.info("Sent", { feed: feedConfig.name, title: item.title });
+			dependencies.logger.info("Sent", {
+				feed: feedConfig.name,
+				title: item.title,
+			});
 		} catch (error) {
-			logger.error("送信失敗", {
+			dependencies.logger.error("送信失敗", {
 				feed: feedConfig.name,
 				title: item.title,
 				error,
 			});
-			return;
+			return "failed";
 		}
 
 		try {
-			await delay(sendDelayMs, undefined, { signal });
+			await dependencies.delay(sendDelayMs, undefined, { signal });
 		} catch {
-			return;
+			return "aborted";
 		}
 	}
+	return "sent";
 }
-
-main().catch((error: unknown) => {
-	logger.error("致命的なエラー", { error });
-	process.exitCode = 1;
-});
