@@ -240,6 +240,7 @@ function registerShutdownHandlers(controller: AbortController): () => void {
 		process.off("SIGINT", abort);
 		process.off("SIGTERM", abort);
 		process.stdin.off("data", handleConsoleInput);
+		process.stdin.pause();
 	};
 }
 
