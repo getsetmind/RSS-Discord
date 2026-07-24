@@ -64,6 +64,16 @@ docker run --env-file .env \
            rss-discord
 ```
 
+### FeatherPanel
+
+リポジトリの `deploy/featherpanel/` には、非 root で動作する
+FeatherPanel 向けイメージ構成、PTDL v2 Spell、冪等なデプロイスクリプトが
+含まれています。実行時データは `/home/container/data`、ログは
+`/home/container/logs` に保存され、アプリケーション本体は
+`/opt/rss-discord` に配置されます。
+
+[FeatherPanel デプロイガイド](deploy/featherpanel/README.ja.md)を参照してください。
+
 ## 設定
 
 フィードは番号付き環境変数で設定します。`RSS_DISCORD_FEEDS_1_*`, `RSS_DISCORD_FEEDS_2_*`, ..., `RSS_DISCORD_FEEDS_100_*` のように番号を増やせます。

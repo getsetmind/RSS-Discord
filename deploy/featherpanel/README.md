@@ -1,5 +1,7 @@
 # FeatherPanel deployment
 
+[日本語](README.ja.md)
+
 RSS Discord runs as a Bun process without an HTTP listener. FeatherPanel still
 requires one allocation, but its port must not be opened in the firewall.
 
