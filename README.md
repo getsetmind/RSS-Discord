@@ -64,6 +64,15 @@ docker run --env-file .env \
            rss-discord
 ```
 
+### FeatherPanel
+
+The repository includes a non-root FeatherPanel image layout, a PTDL v2 Spell,
+and an idempotent deployment script under `deploy/featherpanel/`. Runtime data
+is stored in `/home/container/data` and logs in `/home/container/logs`; the
+application itself remains under `/opt/rss-discord`.
+
+See [the FeatherPanel deployment guide](deploy/featherpanel/README.md).
+
 ## Configuration
 
 Configure feeds with numbered environment variables. Add more feeds by increasing the number: `RSS_DISCORD_FEEDS_1_*`, `RSS_DISCORD_FEEDS_2_*`, ..., `RSS_DISCORD_FEEDS_100_*`.

@@ -1,0 +1,128 @@
+{
+	"meta": {
+		"version": "PTDL_v2"
+	},
+	"name": "RSS Discord",
+	"author": "getsetmind",
+	"description": "RSS/Atom feed notifier for Discord powered by TypeScript and Bun",
+	"features": [],
+	"docker_images": {
+		"RSS Discord": "ghcr.io/getsetmind/rss-discord:latest"
+	},
+	"file_denylist": ["logs/*.log"],
+	"startup": "bun /opt/rss-discord/cli.js",
+	"config": {
+		"files": {},
+		"startup": {
+			"done": "ポーリング開始 (Ctrl+C で停止)"
+		},
+		"logs": {},
+		"stop": "^C"
+	},
+	"scripts": {
+		"installation": {
+			"container": "oven/bun:1.3.14-alpine",
+			"entrypoint": "sh",
+			"script": ""
+		}
+	},
+	"variables": [
+		{
+			"name": "Feed 1 Name",
+			"description": "Display name for the first feed",
+			"env_variable": "RSS_DISCORD_FEEDS_1_NAME",
+			"default_value": "",
+			"user_viewable": true,
+			"user_editable": true,
+			"rules": "required|string|max:100"
+		},
+		{
+			"name": "Feed 1 URL",
+			"description": "RSS or Atom URL for the first feed",
+			"env_variable": "RSS_DISCORD_FEEDS_1_URL",
+			"default_value": "",
+			"user_viewable": true,
+			"user_editable": true,
+			"rules": "required|url|max:2048"
+		},
+		{
+			"name": "Feed 1 Discord Webhook URL",
+			"description": "Discord webhook used by the first feed",
+			"env_variable": "RSS_DISCORD_FEEDS_1_WEBHOOK_URL",
+			"default_value": "",
+			"user_viewable": false,
+			"user_editable": false,
+			"rules": "required|url|max:2048"
+		},
+		{
+			"name": "Feed 1 Embed Color",
+			"description": "Decimal Discord embed color for the first feed",
+			"env_variable": "RSS_DISCORD_FEEDS_1_COLOR",
+			"default_value": "3447003",
+			"user_viewable": true,
+			"user_editable": true,
+			"rules": "required|integer|between:0,16777215"
+		},
+		{
+			"name": "Feed 1 Polling Interval",
+			"description": "Polling interval in minutes for the first feed",
+			"env_variable": "RSS_DISCORD_FEEDS_1_INTERVAL_MINUTES",
+			"default_value": "5",
+			"user_viewable": true,
+			"user_editable": true,
+			"rules": "required|numeric|min:0.1|max:1440"
+		},
+		{
+			"name": "Feed 2 Name",
+			"description": "Display name for the second feed",
+			"env_variable": "RSS_DISCORD_FEEDS_2_NAME",
+			"default_value": "",
+			"user_viewable": true,
+			"user_editable": true,
+			"rules": "required|string|max:100"
+		},
+		{
+			"name": "Feed 2 URL",
+			"description": "RSS or Atom URL for the second feed",
+			"env_variable": "RSS_DISCORD_FEEDS_2_URL",
+			"default_value": "",
+			"user_viewable": true,
+			"user_editable": true,
+			"rules": "required|url|max:2048"
+		},
+		{
+			"name": "Feed 2 Discord Webhook URL",
+			"description": "Discord webhook used by the second feed",
+			"env_variable": "RSS_DISCORD_FEEDS_2_WEBHOOK_URL",
+			"default_value": "",
+			"user_viewable": false,
+			"user_editable": false,
+			"rules": "required|url|max:2048"
+		},
+		{
+			"name": "Feed 2 Embed Color",
+			"description": "Decimal Discord embed color for the second feed",
+			"env_variable": "RSS_DISCORD_FEEDS_2_COLOR",
+			"default_value": "3447003",
+			"user_viewable": true,
+			"user_editable": true,
+			"rules": "required|integer|between:0,16777215"
+		},
+		{
+			"name": "Feed 2 Polling Interval",
+			"description": "Polling interval in minutes for the second feed",
+			"env_variable": "RSS_DISCORD_FEEDS_2_INTERVAL_MINUTES",
+			"default_value": "5",
+			"user_viewable": true,
+			"user_editable": true,
+			"rules": "required|numeric|min:0.1|max:1440"
+		}
+	],
+	"_featherpanel": {
+		"spell_metadata": {
+			"default_docker_image": "ghcr.io/getsetmind/rss-discord:latest",
+			"script_is_privileged": false,
+			"force_outgoing_ip": false
+		}
+	}
+}

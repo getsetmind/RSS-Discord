@@ -233,6 +233,23 @@ describe("run", () => {
 		expect(dependencies.logs).toContain("info:シャットダウン完了");
 	});
 
+	test("stops polling when FeatherPanel sends its stop command to stdin", async () => {
+		let emitted = false;
+		const dependencies = createDependencies({
+			delay: async (_ms, _value, options) => {
+				if (!emitted) {
+					emitted = true;
+					process.stdin.emit("data", "^C\n");
+				}
+				options?.signal?.throwIfAborted();
+			},
+		});
+
+		await run(false, dependencies);
+
+		expect(dependencies.logs).toContain("info:シャットダウン完了");
+	});
+
 	test("runs through main with injected dependencies", async () => {
 		const dependencies = createDependencies();
 

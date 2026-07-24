@@ -190,30 +190,57 @@ export async function run(
 	});
 
 	const controller = new AbortController();
-	process.once("SIGINT", () => controller.abort());
-	process.once("SIGTERM", () => controller.abort());
+	const removeShutdownHandlers = registerShutdownHandlers(controller);
 
-	if (runOnce) {
-		const results = await Promise.all(
-			config.feeds.map((feedConfig) =>
-				processFeed(feedConfig, store, controller.signal, dependencies),
-			),
-		);
-		if (results.includes("failed")) {
-			dependencies.logger.warn("一部フィードの処理に失敗しました");
+	try {
+		if (runOnce) {
+			const results = await Promise.all(
+				config.feeds.map((feedConfig) =>
+					processFeed(feedConfig, store, controller.signal, dependencies),
+				),
+			);
+			if (results.includes("failed")) {
+				dependencies.logger.warn("一部フィードの処理に失敗しました");
+				return;
+			}
+			dependencies.logger.info("Done.");
 			return;
 		}
-		dependencies.logger.info("Done.");
-		return;
-	}
 
-	dependencies.logger.info("ポーリング開始 (Ctrl+C で停止)");
-	await Promise.all(
-		config.feeds.map((feedConfig) =>
-			startPolling(feedConfig, store, controller.signal, dependencies),
-		),
-	);
-	dependencies.logger.info("シャットダウン完了");
+		dependencies.logger.info("ポーリング開始 (Ctrl+C で停止)");
+		await Promise.all(
+			config.feeds.map((feedConfig) =>
+				startPolling(feedConfig, store, controller.signal, dependencies),
+			),
+		);
+		dependencies.logger.info("シャットダウン完了");
+	} finally {
+		removeShutdownHandlers();
+	}
+}
+
+/**
+ * Aborts polling for OS signals and FeatherPanel console stop input.
+ */
+function registerShutdownHandlers(controller: AbortController): () => void {
+	const abort = () => controller.abort();
+	const handleConsoleInput = (input: string | Buffer) => {
+		const command = input.toString();
+		if (command.includes("\u0003") || command.trim() === "^C") {
+			abort();
+		}
+	};
+
+	process.once("SIGINT", abort);
+	process.once("SIGTERM", abort);
+	process.stdin.setEncoding("utf8");
+	process.stdin.on("data", handleConsoleInput);
+
+	return () => {
+		process.off("SIGINT", abort);
+		process.off("SIGTERM", abort);
+		process.stdin.off("data", handleConsoleInput);
+	};
 }
 
 /**
