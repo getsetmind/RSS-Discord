@@ -14,6 +14,10 @@ requires one allocation, but its port must not be opened in the firewall.
 The image uses a non-root user and keeps all runtime writes under
 `/home/container`.
 
+GitHub Actions publishes `latest` and the commit SHA tag, then calls the
+FeatherPanel restart API. Repository secrets `FEATHERPANEL_URL`,
+`FEATHERPANEL_API_KEY`, and `FEATHERPANEL_SERVER_ID` must be configured.
+
 ## Deploy
 
 Copy `rss-discord.env.example` to the ignored `rss-discord.env` and fill in the
