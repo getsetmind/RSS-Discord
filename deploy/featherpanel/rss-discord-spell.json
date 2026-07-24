@@ -14,7 +14,7 @@
 	"config": {
 		"files": {},
 		"startup": {
-			"done": "ポーリング開始 (Ctrl+C で停止)"
+			"done": "Ctrl+C"
 		},
 		"logs": {},
 		"stop": "^C"
