@@ -27,9 +27,10 @@ pwsh -NoProfile -File .\deploy\featherpanel\deploy.ps1 `
   -NoStart
 ```
 
-Use `-NoStart` during migration, copy the existing `data/sent.json` into the
-new server, stop the old instance, and then start the FeatherPanel server.
-This avoids duplicate Discord notifications.
+Use `-NoStart` during migration. The script immediately requests a stop because
+FeatherPanel can auto-start a newly created server. Confirm that it is offline,
+copy the existing `data/sent.json`, stop the old instance, and then start the
+FeatherPanel server. This avoids duplicate Discord notifications.
 
 The two webhook variables are hidden and non-editable in FeatherPanel. To add
 more feeds, extend the Spell variable list and the expected variable list in

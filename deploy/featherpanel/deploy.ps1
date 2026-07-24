@@ -246,7 +246,10 @@ if (-not $server) {
 }
 Write-Output "Server created: id=$($server.id), uuidShort=$($server.uuidShort)"
 
-if (-not $NoStart) {
+if ($NoStart) {
+	[void](Invoke-PanelApi POST "/api/user/servers/$($server.uuidShort)/power/stop")
+	Write-Output "Server stop requested for migration"
+} else {
 	$deadline = (Get-Date).AddMinutes(2)
 	do {
 		Start-Sleep -Seconds 3
