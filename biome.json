@@ -1,4 +1,6 @@
 {
 	"$schema": "https://biomejs.dev/schemas/2.5.6/schema.json",
-	"extends": ["@yuu1111/biome-config/biome"]
+	"extends": [
+		"@yuu1111/biome-config/biome"
+	]
 }

@@ -9,7 +9,9 @@
 	"docker_images": {
 		"RSS Discord": "ghcr.io/getsetmind/rss-discord:latest"
 	},
-	"file_denylist": ["logs/*.log"],
+	"file_denylist": [
+		"logs/*.log"
+	],
 	"startup": "bun /opt/rss-discord/cli.js",
 	"config": {
 		"files": {},
