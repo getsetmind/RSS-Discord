@@ -1,5 +1,5 @@
-import { afterEach, describe, expect, test } from "bun:test";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { afterEach, describe, expect, spyOn, test } from "bun:test";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Logger } from "../src/logger.js";
@@ -82,6 +82,41 @@ describe("Logger", () => {
 		);
 		expect(log).toContain('"level":"warn"');
 		expect(log).toContain('"message":"Careful"');
+	});
+
+	test("formats non-string metadata on the console", async () => {
+		const logger = await createLogger();
+		const consoleLog = spyOn(console, "log").mockImplementation(() => {});
+
+		try {
+			logger.info("Counted", { count: 2 });
+			await Bun.sleep(10);
+
+			expect(consoleLog).toHaveBeenCalledWith(
+				expect.stringContaining(" count=2"),
+			);
+		} finally {
+			consoleLog.mockRestore();
+		}
+	});
+
+	test("reports log file write failures without throwing", async () => {
+		tempDir = await mkdtemp(join(tmpdir(), "rss-discord-logs-"));
+		const blockedDir = join(tempDir, "not-a-directory");
+		await writeFile(blockedDir, "", "utf8");
+		const logger = new Logger(blockedDir);
+		const consoleError = spyOn(console, "error").mockImplementation(() => {});
+
+		try {
+			logger.warn("Blocked");
+			await Bun.sleep(10);
+
+			expect(consoleError).toHaveBeenCalledWith(
+				expect.stringContaining("Failed to write log:"),
+			);
+		} finally {
+			consoleError.mockRestore();
+		}
 	});
 
 	test("filters below the configured minimum level", async () => {

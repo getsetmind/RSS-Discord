@@ -85,15 +85,18 @@ describe("Store", () => {
 		await expect(store.load()).rejects.toThrow("ストアパース失敗");
 	});
 
-	test("treats non-object store JSON as empty", async () => {
-		const path = await createStorePath();
-		await writeStore(path, "[]");
-		const store = new Store(path, 10);
+	test.each(["[]", "null", "1"])(
+		"treats non-object store JSON %s as empty",
+		async (content) => {
+			const path = await createStorePath();
+			await writeStore(path, content);
+			const store = new Store(path, 10);
 
-		await store.load();
+			await store.load();
 
-		expect(store.hasSent("feed", "item")).toBe(false);
-	});
+			expect(store.hasSent("feed", "item")).toBe(false);
+		},
+	);
 
 	test("wraps non-ENOENT read errors", async () => {
 		const path = await createStorePath();
