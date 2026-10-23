@@ -19,6 +19,9 @@ The image uses a non-root user and keeps all runtime writes under
 GitHub Actions publishes `latest` and the commit SHA tag, then calls the
 FeatherPanel restart API. Repository secrets `FEATHERPANEL_URL`,
 `FEATHERPANEL_API_KEY`, and `FEATHERPANEL_SERVER_ID` must be configured.
+After a successful restart, the workflow retains `latest` and the three newest
+commit SHA generations. It also deletes untagged manifests and provenance that
+belong to older generations while preserving manually named tags.
 
 ## Deploy
 

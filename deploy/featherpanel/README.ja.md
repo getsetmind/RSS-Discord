@@ -21,6 +21,8 @@ GitHub Actions は `latest` タグとコミット SHA タグを公開したあ�
 FeatherPanel の再起動 API を呼び出します。リポジトリの Secrets に
 `FEATHERPANEL_URL`、`FEATHERPANEL_API_KEY`、`FEATHERPANEL_SERVER_ID`
 を設定してください。
+restart の成功後、workflow は `latest` と直近3つのコミットSHA世代を保持します。
+古い世代に付随する未タグmanifestとprovenanceは削除し、手動で付けた名前のタグは保持します。
 
 ## デプロイ
 

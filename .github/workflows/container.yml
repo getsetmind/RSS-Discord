@@ -9,6 +9,10 @@ permissions:
   contents: read
   packages: write
 
+concurrency:
+  group: container-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   quality:
     runs-on: ubuntu-latest
@@ -77,3 +81,11 @@ jobs:
             --header "Authorization: Bearer $FEATHERPANEL_API_KEY" \
             --header "Accept: application/json" \
             "$FEATHERPANEL_URL/api/user/servers/$FEATHERPANEL_SERVER_ID/power/restart"
+
+      - name: Clean up old GHCR versions
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >-
+          pwsh -NoProfile -File .github/scripts/cleanup-ghcr-versions.ps1
+          -Package rss-discord
+          -Keep 3
