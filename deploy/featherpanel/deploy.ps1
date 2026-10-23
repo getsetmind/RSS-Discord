@@ -52,7 +52,7 @@ $feedVariables = @(
 	"RSS_DISCORD_FEEDS_2_INTERVAL_MINUTES"
 )
 
-Assert-RequiredValues $panel @("FEATHERPANEL_URL", "FEATHERPANEL_API_PUBLIC_KEY")
+Assert-RequiredValues $panel @("FEATHERPANEL_URL", "FEATHERPANEL_API_PRIVATE_KEY")
 Assert-RequiredValues $app $feedVariables
 
 foreach ($name in @(
@@ -74,7 +74,7 @@ foreach ($name in @(
 
 $baseUrl = $panel.FEATHERPANEL_URL.TrimEnd("/")
 $headers = @{
-	Authorization = "Bearer $($panel.FEATHERPANEL_API_PUBLIC_KEY)"
+	Authorization = "Bearer $($panel.FEATHERPANEL_API_PRIVATE_KEY)"
 	Accept        = "application/json"
 }
 
